@@ -63,6 +63,15 @@ const RecordType* RecordType::getBytesType(Context* context) {
                          SubstitutionsMap());
 }
 
+const RecordType* RecordType::getRangeType(Context* context) {
+  auto symbolPath = UniqueString::get(context, "ChapelRange.range");
+  auto name = UniqueString::get(context, "range");
+  auto id = ID(symbolPath, -1, 0);
+  return RecordType::get(context, id, name,
+                         /* instantiatedFrom */ nullptr,
+                         SubstitutionsMap());
+}
+
 
 } // end namespace types
 } // end namespace chpl

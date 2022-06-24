@@ -206,7 +206,7 @@ static void setupSearchPaths(Context* ctx, bool enableStdLib,
                            false,
                            "qthreads",
                            "none",
-                           "linux64-x86_64-gnu",
+                           "darwin-arm64-llvm",
                            "",
                            cmdLinePaths);
   } else {

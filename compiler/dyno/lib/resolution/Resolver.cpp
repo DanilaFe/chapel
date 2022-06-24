@@ -1401,6 +1401,73 @@ void Resolver::exit(const TupleDecl* decl) {
   exitScope(decl);
 }
 
+bool Resolver::enter(const Range* range) {
+  return true;
+}
+void Resolver::exit(const Range* range) {
+  ResolvedExpression& re = byPostorder.byAst(range);
+  ResolvedExpression& reLower = byPostorder.byAst(range->lowerBound());
+  ResolvedExpression& reUpper = byPostorder.byAst(range->upperBound());
+
+  if (*reLower.type().type() != *reUpper.type().type()) {
+    re.setType(QualifiedType(QualifiedType::TYPE, ErroneousType::get(context)));
+    return;
+  }
+  auto boundType = QualifiedType(QualifiedType::TYPE, reLower.type().type());
+
+  const RecordType* rangeType = RecordType::getRangeType(context);
+  auto rangeTypeDefaults = typeWithDefaults(context, QualifiedType(QualifiedType::TYPE, rangeType));
+  const ResolvedFields& resolvedFields = fieldsForTypeDecl(context, rangeType,
+      /* useGenericFormalDefaults */ false);
+
+  assert(resolvedFields.fieldName(0) == "idxType");
+  assert(resolvedFields.fieldName(1) == "boundedType");
+  assert(resolvedFields.fieldName(2) == "stridable");
+
+  auto subMap = SubstitutionsMap();
+  subMap.insert({resolvedFields.fieldDeclId(0), std::move(boundType)});
+  // subMap.insert({resolvedFields.fieldDeclId(1), resolvedFieldsGen.fieldType(1)});
+  // subMap.insert({resolvedFields.fieldDeclId(2), resolvedFieldsGen.fieldType(2)});
+
+  const RecordType* rangeTypeInst =
+      RecordType::get(context, rangeType->id(), rangeType->name(),
+                      rangeType, std::move(subMap));
+  re.setType(QualifiedType(QualifiedType::TYPE, rangeTypeInst));
+  // subMap.insert({resolvedFields.fieldDeclId(1),
+  //   QualifiedType(QualifiedType::PARAM,
+  //                 EnumType::getBoundedRangeTypeType(context))});
+
+
+  // auto name = UniqueString::get(context, "chpl_build_bounded_range");
+  // bool isMethodCall = false;
+  // bool hasQuestionArg = false;
+  // std::vector<CallInfoActual> actuals;
+
+  // actuals.push_back(CallInfoActual(reLower.type(), UniqueString::get(context, "")));
+  // actuals.push_back(CallInfoActual(reUpper.type(), UniqueString::get(context, "")));
+  // auto ci = CallInfo(name, QualifiedType(),
+  //     isMethodCall, hasQuestionArg, /* isParenless */ false,
+  //     std::move(actuals));
+
+  // auto inScope = scopeStack.back();
+  // auto inPoiScope = poiScope;
+
+  // auto crr = resolveGeneratedCall(context, range, ci, inScope, inPoiScope);
+ 
+  // assert(crr.mostSpecific().numBest() <= 1);
+
+  // if (crr.mostSpecific().only() != nullptr) {
+  //   handleResolvedAssociatedCall(re, range, ci, crr);
+  // } else {
+  //   issueErrorForFailedCallResolution(range, ci, crr);
+  // }
+
+  // std::cout << "We got here!" << std::endl;
+  // std::cout << "Matching candidates: " << crr.mostSpecific().numBest() << std::endl;
+  // re.setType(crr.exprType());
+}
+
+
 bool Resolver::enter(const Call* call) {
 
   inLeafCall = call;

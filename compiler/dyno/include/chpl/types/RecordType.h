@@ -65,6 +65,9 @@ class RecordType final : public CompositeType {
   /** Get the bytes type */
   static const RecordType* getBytesType(Context* context);
 
+  /** Get the range type */
+  static const RecordType* getRangeType(Context* context);
+
   ~RecordType() = default;
 
   /** If this type represents an instantiated type,
