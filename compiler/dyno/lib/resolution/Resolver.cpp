@@ -1416,9 +1416,8 @@ void Resolver::exit(const Range* range) {
   auto boundType = QualifiedType(QualifiedType::TYPE, reLower.type().type());
 
   const RecordType* rangeType = RecordType::getRangeType(context);
-  auto rangeTypeDefaults = typeWithDefaults(context, QualifiedType(QualifiedType::TYPE, rangeType));
   const ResolvedFields& resolvedFields = fieldsForTypeDecl(context, rangeType,
-      /* useGenericFormalDefaults */ false);
+      /* useGenericFormalDefaults */ true);
 
   assert(resolvedFields.fieldName(0) == "idxType");
   assert(resolvedFields.fieldName(1) == "boundedType");
@@ -1426,13 +1425,13 @@ void Resolver::exit(const Range* range) {
 
   auto subMap = SubstitutionsMap();
   subMap.insert({resolvedFields.fieldDeclId(0), std::move(boundType)});
-  // subMap.insert({resolvedFields.fieldDeclId(1), resolvedFieldsGen.fieldType(1)});
-  // subMap.insert({resolvedFields.fieldDeclId(2), resolvedFieldsGen.fieldType(2)});
+  subMap.insert({resolvedFields.fieldDeclId(1), resolvedFields.fieldType(1)});
+  subMap.insert({resolvedFields.fieldDeclId(2), resolvedFields.fieldType(2)});
 
   const RecordType* rangeTypeInst =
       RecordType::get(context, rangeType->id(), rangeType->name(),
                       rangeType, std::move(subMap));
-  re.setType(QualifiedType(QualifiedType::TYPE, rangeTypeInst));
+  re.setType(QualifiedType(QualifiedType::VAR, rangeTypeInst));
   // subMap.insert({resolvedFields.fieldDeclId(1),
   //   QualifiedType(QualifiedType::PARAM,
   //                 EnumType::getBoundedRangeTypeType(context))});
