@@ -731,8 +731,6 @@ void noteParsedIncludedModule(ModuleSymbol* mod, const char* pathAstr) {
 
 static void uASTDisplayError(chpl::Context* context,
                              const chpl::ErrorMessage& err) {
-  //astlocMarker locMarker(err.location());
-
   auto loc = err.location(context);
 
   const char* msg = err.message().c_str();
@@ -762,6 +760,11 @@ static void uASTDisplayError(chpl::Context* context,
     default:
       INT_FATAL("Should not reach here!");
       break;
+  }
+
+  // Also show the details if there is additional information.
+  for (const chpl::ErrorMessage& e : err.details()) {
+    uASTDisplayError(context, e);
   }
 }
 
