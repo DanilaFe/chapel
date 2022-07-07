@@ -77,14 +77,18 @@ struct ConvertedSymbolsMap {
   { }
 
   // if it was already in the map, this will replace it
-  void noteConvertedSym(const uast::AstNode* ast, Symbol* sym);
-  void noteConvertedFn(const resolution::TypedFnSignature* sig, FnSymbol* fn);
-  Symbol* findConvertedSym(ID id);
-  FnSymbol* findConvertedFn(const resolution::TypedFnSignature* sig);
-  void noteIdentFixupNeeded(SymExpr* se, ID id, ConvertedSymbolsMap* cur);
+  void noteConvertedSym(const uast::AstNode* ast, Symbol* sym, bool trace);
+  void noteConvertedFn(const resolution::TypedFnSignature* sig, FnSymbol* fn,
+                       bool trace);
+  Symbol* findConvertedSym(ID id, bool trace);
+  FnSymbol* findConvertedFn(const resolution::TypedFnSignature* sig,
+                            bool trace);
+  void noteIdentFixupNeeded(SymExpr* se, ID id, ConvertedSymbolsMap* cur,
+                            bool trace);
   void noteCallFixupNeeded(SymExpr* se,
                            const resolution::TypedFnSignature* sig,
-                           ConvertedSymbolsMap* cur);
+                           ConvertedSymbolsMap* cur,
+                           bool trace);
 
   ConvertedSymbolsMap* findMapContainingBoth(ID id1, ID id2);
 
@@ -100,7 +104,6 @@ struct ConvertedSymbolsMap {
 // once we have a single Converter instance that converts a module
 // and all of its dependencies.
 static ConvertedSymbolsMap gConvertedSyms;
-static bool traceConverting = true; // TODO turn off before merging
 
 struct Converter {
   struct ModStackEntry {
@@ -125,6 +128,9 @@ struct Converter {
   chpl::Context* context = nullptr;
   bool inTupleDecl = false;
   bool inImportOrUse = false;
+  bool canScopeResolve = false;
+  bool trace = false;
+
   ModTag topLevelModTag;
   // TODO: remove latestComment and builderResult once
   // chpldoc is implemented as a separate tool on uAST
@@ -186,7 +192,7 @@ struct Converter {
   }
 
   static bool shouldScopeResolve(UniqueString symbolPath) {
-    return true; // TODO set back to return false before merging
+    return fDynoCompilerLibrary;
   }
   static bool shouldScopeResolve(ID symbolId) {
     return shouldScopeResolve(symbolId.symbolPath());
@@ -2456,10 +2462,6 @@ struct Converter {
   }
 
   FnSymbol* convertFunction(const uast::Function* node, const char* comment) {
-    if (node->id().symbolPath() == "ChapelBase.chpl_statementLevelSymbol#3._ir_copy_recursive") {
-      gdbShouldBreakHere();
-    }
-
     // Decide if we want to resolve this function
     bool shouldResolveFunction = shouldResolve(node);
     bool shouldScopeResolveFunction = shouldResolveFunction ||
@@ -3715,39 +3717,49 @@ Symbol* Converter::convertParam(const types::QualifiedType qt) {
 }
 
 void Converter::noteConvertedSym(const uast::AstNode* ast, Symbol* sym) {
+  if (!canScopeResolve) return;
+
   if (symStack.size() > 0) {
-    symStack.back().convertedSyms->noteConvertedSym(ast, sym);
+    symStack.back().convertedSyms->noteConvertedSym(ast, sym, trace);
   } else {
-    gConvertedSyms.noteConvertedSym(ast, sym);
+    gConvertedSyms.noteConvertedSym(ast, sym, trace);
   }
 }
 
 void Converter::noteConvertedFn(const resolution::TypedFnSignature* sig,
                                 FnSymbol* fn) {
+  if (!canScopeResolve) return;
+
   if (symStack.size() > 0) {
-    symStack.back().convertedSyms->noteConvertedFn(sig, fn);
+    symStack.back().convertedSyms->noteConvertedFn(sig, fn, trace);
   } else {
-    gConvertedSyms.noteConvertedFn(sig, fn);
+    gConvertedSyms.noteConvertedFn(sig, fn, trace);
   }
 }
 
 Symbol* Converter::findConvertedSym(ID id) {
+  if (!canScopeResolve) return nullptr;
+
   if (symStack.size() > 0) {
-    return symStack.back().convertedSyms->findConvertedSym(id);
+    return symStack.back().convertedSyms->findConvertedSym(id, trace);
   } else {
-    return gConvertedSyms.findConvertedSym(id);
+    return gConvertedSyms.findConvertedSym(id, trace);
   }
 }
 
 FnSymbol* Converter::findConvertedFn(const resolution::TypedFnSignature* sig) {
+  if (!canScopeResolve) return nullptr;
+
   if (symStack.size() > 0) {
-    return symStack.back().convertedSyms->findConvertedFn(sig);
+    return symStack.back().convertedSyms->findConvertedFn(sig, trace);
   } else {
-    return gConvertedSyms.findConvertedFn(sig);
+    return gConvertedSyms.findConvertedFn(sig, trace);
   }
 }
 
 void Converter::noteIdentFixupNeeded(SymExpr* se, ID id) {
+  if (!canScopeResolve) return;
+
   ConvertedSymbolsMap* m = nullptr;
   ConvertedSymbolsMap* cur = &gConvertedSyms;
   if (symStack.size() > 0) {
@@ -3760,11 +3772,13 @@ void Converter::noteIdentFixupNeeded(SymExpr* se, ID id) {
     m = &gConvertedSyms;
   }
 
-  m->noteIdentFixupNeeded(se, id, cur);
+  m->noteIdentFixupNeeded(se, id, cur, trace);
 }
 
 void Converter::noteCallFixupNeeded(SymExpr* se,
                                     const resolution::TypedFnSignature* sig) {
+  if (!canScopeResolve) return;
+
   ConvertedSymbolsMap* m = nullptr;
   ConvertedSymbolsMap* cur = &gConvertedSyms;
   if (symStack.size() > 0) {
@@ -3776,7 +3790,7 @@ void Converter::noteCallFixupNeeded(SymExpr* se,
     m = &gConvertedSyms;
   }
 
-  m->noteCallFixupNeeded(se, sig, cur);
+  m->noteCallFixupNeeded(se, sig, cur, trace);
 }
 
 static std::string computeMapName(ID inSymbolId) {
@@ -3805,7 +3819,7 @@ void Converter::pushToSymStack(
   } else {
     parentMap = &gConvertedSyms;
   }
-  if (traceConverting) {
+  if (trace) {
     printf("Entering %s %s with parent %s\n",
            astName(ast).c_str(), ast->id().str().c_str(),
            computeMapName(parentMap->inSymbolId).c_str());
@@ -3819,7 +3833,7 @@ void Converter::popFromSymStack(const uast::AstNode* ast) {
   } else {
     assert(false && "stack error");
   }
-  if (traceConverting) {
+  if (trace) {
     printf("Exiting %s %s\n",
            astName(ast).c_str(), ast->id().str().c_str());
   }
@@ -3827,8 +3841,9 @@ void Converter::popFromSymStack(const uast::AstNode* ast) {
 }
 
 void ConvertedSymbolsMap::noteConvertedSym(const uast::AstNode* ast,
-                                           Symbol* sym) {
-  if (traceConverting) {
+                                           Symbol* sym,
+                                           bool trace) {
+  if (trace) {
     printf("Converted %s %s and noting it in %s\n",
            astName(ast).c_str(), ast->id().str().c_str(),
            computeMapName(inSymbolId).c_str());
@@ -3838,7 +3853,7 @@ void ConvertedSymbolsMap::noteConvertedSym(const uast::AstNode* ast,
   // parent map, since e.g. a module knows about submodules inside.
   if (inSymbolId == ast->id()) {
     if (parentMap != nullptr) {
-      if (traceConverting) {
+      if (trace) {
         ID parentId = parentMap->inSymbolId;
         printf(" also noting it in %s\n",
                computeMapName(parentId).c_str());
@@ -3851,8 +3866,9 @@ void ConvertedSymbolsMap::noteConvertedSym(const uast::AstNode* ast,
 
 void ConvertedSymbolsMap::noteConvertedFn(
                                 const resolution::TypedFnSignature* sig,
-                                FnSymbol* fn) {
-  if (traceConverting) {
+                                FnSymbol* fn,
+                                bool trace) {
+  if (trace) {
     printf("Converted %s %s and noting it in %s\n",
            sig->untyped()->name().c_str(),
            sig->untyped()->id().str().c_str(),
@@ -3863,7 +3879,7 @@ void ConvertedSymbolsMap::noteConvertedFn(
   // parent map, since e.g. a module knows about submodules inside.
   if (inSymbolId == sig->untyped()->id()) {
     if (parentMap != nullptr) {
-      if (traceConverting) {
+      if (trace) {
         ID parentId = parentMap->inSymbolId;
         printf(" also noting it in %s\n",
                computeMapName(parentId).c_str());
@@ -3875,8 +3891,9 @@ void ConvertedSymbolsMap::noteConvertedFn(
 }
 
 void ConvertedSymbolsMap::noteIdentFixupNeeded(SymExpr* se, ID id,
-                                               ConvertedSymbolsMap* cur) {
-  if (traceConverting) {
+                                               ConvertedSymbolsMap* cur,
+                                               bool trace) {
+  if (trace) {
     printf("Noting fixup needed for mention of %s within %s in map for %s\n",
            id.str().c_str(),
            computeMapName(cur->inSymbolId).c_str(),
@@ -3888,8 +3905,9 @@ void ConvertedSymbolsMap::noteIdentFixupNeeded(SymExpr* se, ID id,
 
 void ConvertedSymbolsMap::noteCallFixupNeeded(SymExpr* se,
                                 const resolution::TypedFnSignature* sig,
-                                ConvertedSymbolsMap* cur) {
-  if (traceConverting) {
+                                ConvertedSymbolsMap* cur,
+                                bool trace) {
+  if (trace) {
     printf("Noting fixup needed for mention of %s within %s in map for %s\n",
            sig->untyped()->id().str().c_str(),
            computeMapName(cur->inSymbolId).c_str(),
@@ -3899,7 +3917,7 @@ void ConvertedSymbolsMap::noteCallFixupNeeded(SymExpr* se,
   callFixups.emplace_back(se, sig);
 }
 
-Symbol* ConvertedSymbolsMap::findConvertedSym(ID id) {
+Symbol* ConvertedSymbolsMap::findConvertedSym(ID id, bool trace) {
   for (ConvertedSymbolsMap* cur = this;
        cur != nullptr;
        cur = cur->parentMap) {
@@ -3907,7 +3925,7 @@ Symbol* ConvertedSymbolsMap::findConvertedSym(ID id) {
     if (it != syms.end()) {
       Symbol* ret = it->second;
       // already converted it, so return that
-      if (traceConverting) {
+      if (trace) {
         printf("Found %s %s in %s\n",
                ret->name, id.str().c_str(), inSymbolId.str().c_str());
       }
@@ -3915,7 +3933,7 @@ Symbol* ConvertedSymbolsMap::findConvertedSym(ID id) {
     }
   }
 
-  if (traceConverting) {
+  if (trace) {
     printf("Could not find %s in %s or parents\n",
            id.str().c_str(), inSymbolId.str().c_str());
   }
@@ -3924,7 +3942,8 @@ Symbol* ConvertedSymbolsMap::findConvertedSym(ID id) {
 }
 
 FnSymbol* ConvertedSymbolsMap::findConvertedFn(
-                                  const resolution::TypedFnSignature* sig) {
+                                  const resolution::TypedFnSignature* sig,
+                                  bool trace) {
   for (ConvertedSymbolsMap* cur = this;
        cur != nullptr;
        cur = cur->parentMap) {
@@ -3932,7 +3951,7 @@ FnSymbol* ConvertedSymbolsMap::findConvertedFn(
     if (it != fns.end()) {
       FnSymbol* fn = it->second;
       // already converted it, so return that
-      if (traceConverting) {
+      if (trace) {
         printf("Found %s %s in %s\n",
                sig->untyped()->name().c_str(),
                sig->untyped()->id().str().c_str(),
@@ -3942,7 +3961,7 @@ FnSymbol* ConvertedSymbolsMap::findConvertedFn(
     }
   }
 
-  if (traceConverting) {
+  if (trace) {
     printf("Could not find %s in %s or parents\n",
            sig->untyped()->id().str().c_str(),
            computeMapName(inSymbolId).c_str());
@@ -3976,7 +3995,7 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context) {
     ID target = p.second;
     INT_ASSERT(se->symbol() == gFixupRequiredToken);
 
-    Symbol* sym = findConvertedSym(target);
+    Symbol* sym = findConvertedSym(target, /* trace */ false);
     if (sym == nullptr) {
       INT_FATAL("could not find target symbol for SymExpr fixup for %s",
                 target.str().c_str());
@@ -3995,7 +4014,7 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context) {
     const resolution::TypedFnSignature* target = p.second;
     INT_ASSERT(se->symbol() == gFixupRequiredToken);
 
-    FnSymbol* fn = findConvertedFn(target);
+    FnSymbol* fn = findConvertedFn(target, /* trace */ false);
     if (fn == nullptr) {
       INT_FATAL("could not find target function for SymExpr fixup");
     }
@@ -4019,6 +4038,9 @@ convertToplevelModule(chpl::Context* context,
                       const chpl::uast::BuilderResult& builderResult) {
   astlocMarker markAstLoc(mod->id());
   Converter c(context, modTag, builderResult);
+
+  c.canScopeResolve = fDynoCompilerLibrary;
+  c.trace = fDynoCompilerLibrary; // TODO: remove once things are working
 
   // Maybe prepare a toplevel comment to attach to the module.
   if (comment) {
