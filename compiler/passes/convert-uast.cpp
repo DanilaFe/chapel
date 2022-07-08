@@ -1385,7 +1385,9 @@ struct Converter {
 
   // TODO (dlongnecke): Just replace these with Identifier?
   DefExpr* visit(const uast::TypeQuery* node) {
-    return new DefExpr(new VarSymbol(node->name().c_str()));
+    VarSymbol* var = new VarSymbol(node->name().c_str());
+    noteConvertedSym(node, var);
+    return new DefExpr(var);
   }
 
   CallExpr* visit(const uast::Yield* node) {
@@ -2521,8 +2523,7 @@ struct Converter {
     }
 
     IntentTag thisTag = INTENT_BLANK;
-    Expr* receiverType = nullptr;
-    bool hasConvertedReceiver = false;
+    ArgSymbol* convertedReceiver = nullptr;
 
     // Add the formals
     if (node->numFormals() > 0) {
@@ -2531,26 +2532,23 @@ struct Converter {
 
         // A "normal" formal.
         if (auto formal = decl->toFormal()) {
+          conv = toDefExpr(convertAST(formal));
+          INT_ASSERT(conv);
 
           // Special handling for implicit receiver formal.
           if (formal->name() == USTR("this")) {
-            INT_ASSERT(!hasConvertedReceiver);
-            hasConvertedReceiver = true;
+            INT_ASSERT(convertedReceiver == nullptr);
 
             thisTag = convertFormalIntent(formal->intent());
 
-            // TODO (dlongnecke): Error for new frontend!
-            // "Type binding clauses are not supported..."
-            if (node->isPrimaryMethod() && formal->typeExpression()) {
-              receiverType = nullptr;
-            } else {
-              receiverType = convertExprOrNull(formal->typeExpression());
-            }
+            convertedReceiver = toArgSymbol(conv->sym);
+            INT_ASSERT(convertedReceiver);
 
-          // Else convert it like normal.
-          } else {
-            conv = toDefExpr(convertAST(formal));
-            INT_ASSERT(conv);
+            conv->sym->addFlag(FLAG_ARG_THIS);
+
+            if (thisTag == INTENT_TYPE) {
+              setupTypeIntentArg(convertedReceiver);
+            }
           }
 
         // A varargs formal.
@@ -2588,7 +2586,23 @@ struct Converter {
 
     const char* convName = convertFunctionNameAndAstr(node->name(),
                                                       node->kind());
-    fn = buildFunctionSymbol(fn, convName, thisTag, receiverType);
+
+    // used to be buildFunctionSymbol
+    fn->cname = fn->name = astr(convName);
+
+    if (convertedReceiver) {
+      fn->thisTag = thisTag;
+      fn->_this = convertedReceiver;
+      fn->setMethod(true);
+      ArgSymbol* mt = new ArgSymbol(INTENT_BLANK, "_mt", dtMethodToken);
+      fn->insertFormalAtHead(new DefExpr(mt));
+      if (node->isPrimaryMethod()) {
+        fn->addFlag(FLAG_METHOD_PRIMARY);
+      }
+    }
+
+    if (fn->name == astrDeinit)
+      fn->addFlag(FLAG_DESTRUCTOR);
 
     if (isAssignOp(node->name())) {
       fn->addFlag(FLAG_ASSIGNOP);
@@ -2875,6 +2889,8 @@ struct Converter {
     attachSymbolAttributes(node, ret->sym);
 
     setVariableType(node, ret->sym);
+
+    // noteConvertedSym should be called when handling the enclosing Function
 
     return ret;
   }
@@ -3269,6 +3285,11 @@ struct Converter {
   }
 
   Expr* convertAggregateDecl(const uast::AggregateDecl* node) {
+
+    const resolution::ResolutionResultByPostorderID* resolved = nullptr;
+    // TODO: set resolved
+    pushToSymStack(node, resolved);
+
     auto comment = consumeLatestComment();
     const char* name = astr(node->name());
     const char* cname = name;
@@ -3304,6 +3325,8 @@ struct Converter {
 
     // Note the type is converted so we can wire up SymExprs later
     noteConvertedSym(node, ret->sym);
+
+    popFromSymStack(node);
 
     return ret;
   }
