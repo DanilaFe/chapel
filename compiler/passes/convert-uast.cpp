@@ -182,7 +182,7 @@ struct Converter {
   void noteIdentFixupNeeded(SymExpr* se, ID id);
   void noteCallFixupNeeded(SymExpr* se,
                            const resolution::TypedFnSignature* sig);
-  void noteAllContainedFixups(BaseAST* ast, int unused);
+  void noteAllContainedFixups(BaseAST* ast, int depth);
 
   // symStack helpers
   void pushToSymStack(
@@ -1423,6 +1423,7 @@ struct Converter {
 
   // Help to convert loop index variables before loop bodies
   // so that the Symbols are available to refer to in SymExprs.
+  // It returns a DefExpr or else a _build_tuple call containing others
   Expr* convertLoopIndexDecl(const uast::Decl* node) {
     if (node == nullptr) return nullptr;
 
@@ -3830,7 +3831,7 @@ static std::string astName(const uast::AstNode* ast) {
   }
 }
 
-void Converter::noteAllContainedFixups(BaseAST* ast, int unused) {
+void Converter::noteAllContainedFixups(BaseAST* ast, int depth) {
   // Traverse over 'sym' but don't go in to nested submodules/fns/aggregates
   // since we will have already gathered from those and we don't want
   // this to be quadratic in time.
@@ -3839,16 +3840,18 @@ void Converter::noteAllContainedFixups(BaseAST* ast, int unused) {
   // This is a separate traversal so that the build functios
   // can copy the AST freely.
 
-  if (isModuleSymbol(ast) || isFnSymbol(ast)) {
-    return;
-  }
-  if (TypeSymbol* ts = toTypeSymbol(ast)) {
-    if (isAggregateType(ts->type)) {
+  if (depth > 0) {
+    if (isModuleSymbol(ast) || isFnSymbol(ast)) {
       return;
+    }
+    if (TypeSymbol* ts = toTypeSymbol(ast)) {
+      if (isAggregateType(ts->type)) {
+        return;
+      }
     }
   }
 
-  AST_CHILDREN_CALL(ast, noteAllContainedFixups, 0);
+  AST_CHILDREN_CALL(ast, noteAllContainedFixups, depth+1);
 
   if (SymExpr* se = toSymExpr(ast)) {
     if (auto tcs = toTemporaryConversionSymbol(se->symbol())) {
@@ -4032,6 +4035,7 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context,
   for (const auto& p : identFixups) {
     SymExpr* se = p.first;
     ID target = p.second;
+
     INT_ASSERT(isTemporaryConversionSymbol(se->symbol()));
 
     Symbol* sym = findConvertedSym(target, /* trace */ false);
@@ -4040,9 +4044,6 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context,
                 target.str().c_str(), inSymbolId.str().c_str());
     }
     se->setSymbol(sym);
-    if (fVerify) {
-      INT_ASSERT(sym->defPoint && sym->defPoint->inTree());
-    }
   }
   // clear gIdentFixups since these have now been processed
   identFixups.clear();
@@ -4051,6 +4052,7 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context,
   for (const auto& p : callFixups) {
     SymExpr* se = p.first;
     const resolution::TypedFnSignature* target = p.second;
+
     INT_ASSERT(isTemporaryConversionSymbol(se->symbol()));
 
     FnSymbol* fn = findConvertedFn(target, /* trace */ false);
@@ -4060,9 +4062,6 @@ void ConvertedSymbolsMap::applyFixups(chpl::Context* context,
                  inSymbolId.str().c_str());
     }
     se->setSymbol(fn);
-    if (fVerify) {
-      INT_ASSERT(fn->defPoint && fn->defPoint->inTree());
-    }
   }
   // clear gFnCallFixups since these have now been processed
   callFixups.clear();
@@ -4110,10 +4109,12 @@ convertToplevelModule(chpl::Context* context,
 void postConvertApplyFixups(chpl::Context* context) {
   gConvertedSyms.applyFixups(context, nullptr, /* trace */ false);
 
-  // Ensure no TemporaryConversionSymbol is still in tree
+  // Ensure no SymExpr referring to TemporaryConversionSymbol is still in tree
   if (fVerify) {
-    forv_Vec(TemporaryConversionSymbol, t, gTemporaryConversionSymbols) {
-      INT_ASSERT(!t->inTree());
+    forv_Vec(SymExpr, se, gSymExprs) {
+      if (isTemporaryConversionSymbol(se->symbol())) {
+        INT_ASSERT(!se->inTree());
+      }
     }
   }
 
