@@ -2662,8 +2662,9 @@ static Expr* getIndices(PromotionInfo& promotion) {
 
     if (promotion.promotedType[i] != NULL) {
       const char* name = astr("p_i_", istr(i+1));
+      VarSymbol* var = new VarSymbol(name);
 
-      indicesCall->insertAtTail(new UnresolvedSymExpr(name));
+      indicesCall->insertAtTail(new DefExpr(var));
     }
     i++;
   }
