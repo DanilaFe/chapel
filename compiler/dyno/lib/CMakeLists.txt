@@ -15,6 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+execute_process(COMMAND python /Users/daniel.fedorin/Documents/software/chapel/util/chplenv/chpl_llvm.py --llvm-config
+    WORKING_DIRECTORY /Users/daniel.fedorin/Documents/software/chapel
+    OUTPUT_VARIABLE llvm_config_cmd
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${llvm_config_cmd} --cmakedir
+    OUTPUT_VARIABLE llvm_cmakedir
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+find_package(LLVM REQUIRED PATHS ${llvm_cmakedir}
+      NO_DEFAULT_PATH NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH
+      NO_CMAKE_ENVIRONMENT_PATH NO_SYSTEM_ENVIRONMENT_PATH
+      NO_CMAKE_PACKAGE_REGISTRY
+      NO_CMAKE_SYSTEM_PATH
+      NO_CMAKE_SYSTEM_PACKAGE_REGISTRY)
+llvm_map_components_to_libnames(LLVM_LIBS core support)
+
 
 add_library(libdyno-obj OBJECT)
 
@@ -25,7 +40,10 @@ set_property(TARGET libdyno-obj PROPERTY POSITION_INDEPENDENT_CODE 1)
 # Include the public library .h files as well as any generated .h files
 target_include_directories(libdyno-obj PUBLIC
                            ${CHPL_MAIN_INCLUDE_DIR}
-                           ${CHPL_INCLUDE_DIR})
+                           ${CHPL_INCLUDE_DIR}
+                           ${LLVM_INCLUDE_DIRS})
+target_compile_definitions(libdyno-obj PUBLIC ${LLVM_DEFINITIONS})
+target_link_libraries(libdyno-obj ${LLVM_LIBS})
 
 
 # Library code can also use headers from the lib/ directory
@@ -43,4 +61,7 @@ add_subdirectory(util)
 add_library(libdyno SHARED $<TARGET_OBJECTS:libdyno-obj>)
 target_include_directories(libdyno PUBLIC
                            ${CHPL_MAIN_INCLUDE_DIR}
-                           ${CHPL_INCLUDE_DIR})
+                           ${CHPL_INCLUDE_DIR}
+                           )
+target_compile_definitions(libdyno PUBLIC ${LLVM_DEFINITIONS})
+target_link_libraries(libdyno ${LLVM_LIBS})
