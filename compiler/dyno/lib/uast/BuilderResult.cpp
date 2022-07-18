@@ -96,7 +96,7 @@ bool BuilderResult::update(BuilderResult& keep, BuilderResult& addin) {
 
   // recompute locationsVec by traversing the AST and using the maps
   for (const auto& ast : keep.topLevelExpressions_) {
-    computeIdMaps(ast.get(), nullptr, newIdToAst, newIdToParent);
+    computeIdMaps(ast, nullptr, newIdToAst, newIdToParent);
   }
 
   // now update the ID and Locations maps in keep

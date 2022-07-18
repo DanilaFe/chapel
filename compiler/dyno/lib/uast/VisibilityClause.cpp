@@ -39,9 +39,7 @@ VisibilityClause::build(Builder* builder, Location loc,
 
   if (limitations.size()) {
     numLimitations = limitations.size();
-    for (auto& ast : limitations) {
-      lst.push_back(std::move(ast));
-    }
+    limitations.consume(std::back_inserter(lst));
   }
 
   VisibilityClause* ret = new VisibilityClause(std::move(lst),

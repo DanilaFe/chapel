@@ -38,9 +38,7 @@ owned<Enum> Enum::build(Builder* builder, Location loc,
     lst.push_back(std::move(attributes));
   }
 
-  for (auto& ast : stmts) {
-    lst.push_back(std::move(ast));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   Enum* ret = new Enum(std::move(lst), attributesChildNum, vis, name);
   builder->noteLocation(ret, loc);

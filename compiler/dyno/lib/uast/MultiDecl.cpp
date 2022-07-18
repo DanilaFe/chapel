@@ -48,9 +48,7 @@ owned<MultiDecl> MultiDecl::build(Builder* builder, Location loc,
     lst.push_back(std::move(attributes));
   }
 
-  for (auto& ast : varDecls) {
-    lst.push_back(std::move(ast));
-  }
+  varDecls.consume(std::back_inserter(lst));
 
 
   MultiDecl* ret = new MultiDecl(std::move(lst), attributesChildNum,

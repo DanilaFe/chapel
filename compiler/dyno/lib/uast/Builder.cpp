@@ -148,7 +148,7 @@ void Builder::createImplicitModuleIfNeeded() {
   const AstNode* firstNonModule = nullptr;
 
   for (auto const& ownedExpression: topLevelExpressions_) {
-    const AstNode* ast = ownedExpression.get();
+    const AstNode* ast = ownedExpression;
     if (ast->isComment()) {
       // ignore comments for this analysis
     } else if (ast->isModule()) {
@@ -227,7 +227,7 @@ void Builder::assignIDs() {
   }
 
   for (auto const& ownedExpression: topLevelExpressions_) {
-    AstNode* ast = ownedExpression.get();
+    AstNode* ast = ownedExpression;
     if (ast->isModule() || ast->isComment()) {
       UniqueString emptyString;
       doAssignIDs(ast, emptyString, i, commentIndex, pathVec, duplicates);
@@ -354,7 +354,7 @@ void Builder::doAssignIDs(AstNode* ast, UniqueString symbolPath, int& i,
     int freshId = 0;
     declaredHereT freshMap;
     for (auto & child : ast->children_) {
-      AstNode* ptr = child.get();
+      AstNode* ptr = child;
       this->doAssignIDs(ptr, newSymbolPath, freshId, commentIndex, pathVec, freshMap);
     }
 
@@ -374,7 +374,7 @@ void Builder::doAssignIDs(AstNode* ast, UniqueString symbolPath, int& i,
 
     // visit the children now to get integer part of ids in postorder
     for (auto & child : ast->children_) {
-      AstNode* ptr = child.get();
+      AstNode* ptr = child;
       this->doAssignIDs(ptr, symbolPath, i, commentIndex, pathVec, duplicates);
     }
 
@@ -526,10 +526,8 @@ owned <AstNode> Builder::parseDummyNodeForInitExpr(Variable* var, std::string va
   assert(mod);
   owned<AstNode> initNode;
   if (mod->stmt(0)->isVariable()) {
-    // steal the init expression, children_ will have nullptr in place
-    initNode = std::move(mod->children_[0]->children_.back());
-    // clean out the nullptr
-    mod->children_[0]->children_.pop_back();
+    // steal the init expression
+    initNode = mod->children_[0]->children_.take(mod->children_[0]->children_.end() - 1);
   } else {
     assert(false && "should only be an assignment or type initializer");
   }
@@ -542,24 +540,20 @@ owned <AstNode> Builder::parseDummyNodeForInitExpr(Variable* var, std::string va
 void Builder::noteChildrenLocations(AstNode* ast, Location loc) {
   notedLocations_[ast] = loc;
   for (auto &child : this->mutableRefToChildren(ast)) {
-    noteChildrenLocations(child.get(), loc);
+    noteChildrenLocations(child, loc);
   }
 }
 
 AstList Builder::flattenTopLevelBlocks(AstList lst) {
   AstList ret;
 
-  for (auto& ast : lst) {
+  lst.take_each([this, &ret](auto ast) {
     if (ast->isBlock()) {
-      for (auto& child : takeChildren(std::move(ast))) {
-        ret.push_back(std::move(child));
-      }
+      takeChildren(std::move(ast)).consume(std::back_inserter(ret));
     } else {
       ret.push_back(std::move(ast));
     }
-  }
-
-  lst.clear();
+  });
 
   return ret;
 }

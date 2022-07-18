@@ -88,7 +88,7 @@ class New : public AstNode {
   */
   const AstNode* typeExpression() const {
     assert(children_.size() > 0);
-    return children_[0].get();
+    return children_[0];
   }
 
   /**

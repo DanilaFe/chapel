@@ -3117,7 +3117,7 @@ for_expr:
     if (iterExprs.size() > 1) {
       iterand = Domain::build(BUILDER, LOC(@2), false, std::move(iterExprs));
     } else {
-      iterand = std::move(iterExprs[0]);
+      iterand = iterExprs.take(iterExprs.begin());
     }
     assert(iterand);
     $$ = BracketLoop::build(BUILDER, LOC(@$), /*index*/ nullptr,

@@ -39,9 +39,7 @@ Module::build(Builder* builder, Location loc,
     lst.push_back(std::move(attributes));
   }
 
-  for (auto& ast : stmts) {
-    lst.push_back(std::move(ast));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   Module* ret = new Module(std::move(lst), attributesChildNum, vis,
                            name,

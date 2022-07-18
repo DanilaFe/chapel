@@ -40,9 +40,7 @@ owned<Cobegin> Cobegin::build(Builder* builder,
   const int bodyChildNum = lst.size();
   const int numTaskBodies = taskBodies.size();
 
-  for (auto& taskBody : taskBodies) {
-    lst.push_back(std::move(taskBody));
-  }
+  taskBodies.consume(std::back_inserter(lst));
 
   Cobegin* ret = new Cobegin(std::move(lst), withClauseChildNum,
                              bodyChildNum,

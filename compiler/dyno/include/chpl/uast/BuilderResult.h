@@ -91,7 +91,7 @@ class BuilderResult final {
   /** return the i'th top-level expression */
   const AstNode* topLevelExpression(int i) const {
     assert(0 <= i && (size_t) i < topLevelExpressions_.size());
-    return topLevelExpressions_[i].get();
+    return topLevelExpressions_[i];
   }
 
   /** iterate over the parsed top-level expressions */

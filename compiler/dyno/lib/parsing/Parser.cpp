@@ -201,7 +201,6 @@ BuilderResult Parser::parseString(const char* path, const char* str,
   ParserContext parserContext(path, builder.get(), parseStats);
 
   yychpl_lex_init_extra(&parserContext, &parserContext.scanner);
-
   handle = yychpl__scan_string(str, parserContext.scanner);
 
   my_yylloc.first_line   = 1;

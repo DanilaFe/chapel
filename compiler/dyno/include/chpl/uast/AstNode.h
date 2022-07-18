@@ -130,7 +130,7 @@ class AstNode {
    */
   const AstNode* child(int i) const {
     assert(0 <= i && i < (int) children_.size());
-    return children_[i].get();
+    return children_[i];
   }
 
   /**

@@ -29,7 +29,7 @@ bool TupleDecl::assertAcceptableTupleDecl() {
   int i = 0;
 
   for (const auto& elt: children_) {
-    if (elt.get() == attributes()) {
+    if (elt == attributes()) {
       // TODO: Make sure it is equivalent to components?
     } else if (i == typeExpressionChildNum_) {
       // no checking needed
@@ -77,9 +77,7 @@ owned<TupleDecl> TupleDecl::build(Builder* builder, Location loc,
   }
 
   numElements = elements.size();
-  for (auto& ast : elements) {
-    list.push_back(std::move(ast));
-  }
+  elements.consume(std::back_inserter(list));
 
   // then add the typeExpression, if any
   if (typeExpression.get() != nullptr) {

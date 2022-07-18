@@ -189,8 +189,8 @@ bool AstNode::completeMatch(const AstNode* other) const {
   bool allMatch = true;
   size_t nChildren = lhs->children_.size();
   for (size_t i = 0; i < nChildren; i++) {
-    const AstNode* lhsChild = lhs->children_[i].get();
-    const AstNode* rhsChild = rhs->children_[i].get();
+    const AstNode* lhsChild = lhs->children_[i];
+    const AstNode* rhsChild = rhs->children_[i];
     bool childMatch = lhsChild->completeMatch(rhsChild);
     if (!childMatch) {
       allMatch = false;

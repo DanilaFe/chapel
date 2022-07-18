@@ -10353,7 +10353,7 @@ yyreduce:
     if (iterExprs.size() > 1) {
       iterand = Domain::build(BUILDER, LOC((yylsp[-2])), false, std::move(iterExprs));
     } else {
-      iterand = std::move(iterExprs[0]);
+      iterand = iterExprs.take(iterExprs.begin());
     }
     assert(iterand);
     (yyval.expr) = BracketLoop::build(BUILDER, LOC((yyloc)), /*index*/ nullptr,

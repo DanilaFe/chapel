@@ -80,7 +80,7 @@ Variable::build(Builder* builder, Location loc,
 void Variable::setInitExprForConfig(owned<AstNode> ie) {
   if (this->initExpressionChildNum_ > -1) {
     // have an existing initExpr, swap it
-    this->children_[this->initExpressionChildNum_].swap(ie);
+    this->children_.swap_at(this->initExpressionChildNum_, ie);
   } else {
     // no initExpr and no typeExpr nor attribute
     initExpressionChildNum_ = children_.size();

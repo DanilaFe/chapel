@@ -36,9 +36,7 @@ owned<Serial> Serial::build(Builder* builder,
   const int bodyChildNum = lst.size();
   const int numBodyStmts = stmts.size();
 
-  for (auto& stmt : stmts) {
-    lst.push_back(std::move(stmt));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   Serial* ret = new Serial(std::move(lst), condChildNum, blockStyle,
                            bodyChildNum,
@@ -65,9 +63,7 @@ owned<Serial> Serial::build(Builder* builder,
   const int bodyChildNum = lst.size();
   const int numBodyStmts = stmts.size();
 
-  for (auto& stmt : stmts) {
-    lst.push_back(std::move(stmt));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   Serial* ret = new Serial(std::move(lst), condChildNum, blockStyle,
                            bodyChildNum,

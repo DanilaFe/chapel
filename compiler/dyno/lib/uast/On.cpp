@@ -38,9 +38,7 @@ owned<On> On::build(Builder* builder, Location loc,
   const int bodyChildNum = lst.size();
   const int numBodyStmts = stmts.size();
 
-  for (auto& stmt : stmts) {
-    lst.push_back(std::move(stmt));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   On* ret = new On(std::move(lst), blockStyle, bodyChildNum, numBodyStmts);
   builder->noteLocation(ret, loc);

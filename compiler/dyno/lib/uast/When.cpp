@@ -34,15 +34,11 @@ owned<When> When::build(Builder* builder, Location loc,
   const int numBodyStmts = stmts.size();
   int bodyChildNum = -1;
 
-  for (auto& ast : caseExprs) {
-    lst.push_back(std::move(ast));
-  }
+  caseExprs.consume(std::back_inserter(lst));
 
   bodyChildNum = lst.size();
 
-  for (auto& ast : stmts) {
-    lst.push_back(std::move(ast));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   When* ret = new When(std::move(lst), numCaseExprs, blockStyle,
                        bodyChildNum,

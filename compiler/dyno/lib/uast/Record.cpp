@@ -49,9 +49,7 @@ owned<Record> Record::build(Builder* builder, Location loc,
   }
 
   elementsChildNum = lst.size();
-  for (auto& ast : contents) {
-    lst.push_back(std::move(ast));
-  }
+  contents.consume(std::back_inserter(lst));
 
   Record* ret = new Record(std::move(lst), attributesChildNum, vis,
                            linkage,

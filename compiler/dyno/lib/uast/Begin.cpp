@@ -41,9 +41,7 @@ owned<Begin> Begin::build(Builder* builder,
   const int bodyChildNum = lst.size();
   const int numBodyStmts = stmts.size();
 
-  for (auto& stmt : stmts) {
-    lst.push_back(std::move(stmt));
-  }
+  stmts.consume(std::back_inserter(lst));
 
   Begin* ret = new Begin(std::move(lst), withClauseChildNum, blockStyle,
                          bodyChildNum,

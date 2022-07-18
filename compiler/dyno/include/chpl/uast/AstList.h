@@ -22,6 +22,7 @@
 
 #include "chpl/uast/ASTTypes.h"
 #include "chpl/util/memory.h"
+#include "llvm/ADT/TinyPtrVector.h"
 
 #include <iterator>
 #include <vector>
@@ -35,7 +36,86 @@ namespace uast {
 /**
   AstList is just a list that owns some AST nodes.
  */
-using AstList = std::vector<owned<AstNode>>;
+struct AstList {
+ private:
+  llvm::TinyPtrVector<AstNode*> nodes_;
+ public:
+  using difference_type = ptrdiff_t;
+  using const_iterator = llvm::TinyPtrVector<AstNode*>::const_iterator;
+  using value_type = owned<AstNode>; // semantically, AstList owns its nodes
+  using iterator = llvm::TinyPtrVector<AstNode*>::iterator;
+
+  AstList() : nodes_() {}
+  AstList(AstList& other) = delete;
+  AstList(AstList&& other) = default;
+
+  ~AstList();
+
+  void push_back(owned<AstNode>&& node) {
+    nodes_.push_back(node.release());
+  }
+
+  const_iterator begin() const { return nodes_.begin(); }
+  iterator begin() { return nodes_.begin(); }
+
+  const_iterator end() const { return nodes_.end(); }
+  iterator end() { return nodes_.end(); }
+
+  size_t size() const { return nodes_.size(); }
+
+  iterator erase(iterator pos);
+  AstNode* release(iterator pos) {
+    auto node = *pos;
+    nodes_.erase(pos);
+    return node;
+  }
+  AstNode* release(unsigned i) {
+    return release(begin() + i);
+  }
+  owned<AstNode> take(iterator pos) {
+    return toOwned(release(pos));
+  }
+  owned<AstNode> take(unsigned i) {
+    return take(begin() + i);
+  }
+
+  template <typename OutputIt>
+  OutputIt consume(OutputIt dest) {
+    for(auto& ptr : nodes_) {
+      *dest = toOwned(ptr);
+      dest++;
+    }
+    nodes_.clear();
+    return dest;
+  }
+
+  template <typename F>
+  void take_each(F f) {
+    for (auto& ptr : nodes_) {
+      f(toOwned(ptr));
+    }
+    nodes_.clear();
+  }
+
+  void swap(AstList& other) {
+    std::swap(nodes_, other.nodes_);
+  }
+
+  void swap_at(iterator it, owned<AstNode>& other) {
+    auto new_ptr = other.release();
+    other.reset(*it);
+    *it = new_ptr;
+  }
+  void swap_at(unsigned i, owned<AstNode>& other) {
+    swap_at(begin() + i, other);
+  }
+
+  AstNode* operator[](unsigned i) const { return nodes_[i]; }
+  AstList& operator=(AstList& other) = delete;
+
+  static std::vector<owned<AstNode>> toOwnedVector(AstList lst);
+  static AstList fromOwnedVector(std::vector<owned<AstNode>> lst);
+};
 
 /**
   Create an AstList containing a single ast element, transferring
@@ -80,7 +160,7 @@ class AstListIterator {
  public:
   using iterator_category = std::random_access_iterator_tag;
   using value_type = const CastToType*;
-  using difference_type = AstList::const_iterator::difference_type;
+  using difference_type = AstList::difference_type;
   using pointer = const CastToType**;
   using reference = const CastToType*&;
 
@@ -106,10 +186,10 @@ class AstListIterator {
 
   // needs to support * and ->
   const CastToType* operator*() const {
-    return (const CastToType*) this->it->get();
+    return (const CastToType*) *this->it;
   }
   const CastToType* operator->() const {
-    return (const CastToType*) this->it->get();
+    return (const CastToType*) *this->it;
   }
 
   // needs to support preincrement and postincrement

@@ -49,9 +49,7 @@ owned<Union> Union::build(Builder* builder, Location loc,
   }
 
   elementsChildNum = lst.size();
-  for (auto& ast : contents) {
-    lst.push_back(std::move(ast));
-  }
+  contents.consume(std::back_inserter(lst));
 
   Union* ret = new Union(std::move(lst), attributesChildNum, vis,
                          linkage,

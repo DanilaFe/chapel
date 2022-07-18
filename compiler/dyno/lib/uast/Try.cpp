@@ -33,14 +33,12 @@ owned<Try> Try::build(Builder* builder, Location loc, AstList stmts,
   int numHandlers = catches.size();
   bool isExpressionLevel = false;
 
-  for (auto& ast : stmts) {
-    lst.push_back(std::move(ast));
-  }
+  stmts.consume(std::back_inserter(lst));
 
-  for (auto& ast : catches) {
+  catches.take_each([&lst](auto ast) {
     assert(ast->isCatch());
     lst.push_back(std::move(ast));
-  }
+  });
 
   Try* ret = new Try(std::move(lst), numBodyStmts, numHandlers,
                      isExpressionLevel,

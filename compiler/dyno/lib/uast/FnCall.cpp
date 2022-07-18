@@ -34,10 +34,7 @@ namespace uast {
   AstList lst;
 
   lst.push_back(std::move(calledExpression));
-  for (auto& actual : actuals) {
-    lst.push_back(std::move(actual));
-  }
-  actuals.clear();
+  actuals.consume(std::back_inserter(lst));
 
   FnCall* ret = new FnCall(std::move(lst), std::move(actualNames),
                            callUsedSquareBrackets);

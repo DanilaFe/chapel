@@ -49,9 +49,7 @@ owned<Class> Class::build(Builder* builder, Location loc,
   numElements = contents.size();
   if (numElements > 0) {
     elementsChildNum = lst.size();
-    for (auto & elt : contents) {
-      lst.push_back(std::move(elt));
-    }
+    contents.consume(std::back_inserter(lst));
   }
 
   Class* ret = new Class(std::move(lst), attributesChildNum, vis, name,

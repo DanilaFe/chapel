@@ -78,9 +78,7 @@ owned<Function> Function::build(Builder* builder, Location loc,
       numFormals++;
     }
     int nFormals = formals.size();
-    for (auto & formal : formals) {
-      lst.push_back(std::move(formal));
-    }
+    formals.consume(std::back_inserter(lst));
     numFormals += nFormals;
   }
 
@@ -95,9 +93,7 @@ owned<Function> Function::build(Builder* builder, Location loc,
   numLifetimeParts = lifetime.size();
   if (numLifetimeParts != 0) {
     lifetimeChildNum = lst.size();
-    for (auto & part : lifetime) {
-      lst.push_back(std::move(part));
-    }
+    lifetime.consume(std::back_inserter(lst));
   }
 
   if (body.get() != nullptr) {

@@ -42,7 +42,7 @@ owned<Manage> Manage::build(Builder* builder, Location loc,
 
   if (stmts.size()) {
     bodyChildNum = children.size();
-    for (auto& ast : stmts) children.push_back(std::move(ast));
+    stmts.consume(std::back_inserter(children));
   }
 
   Manage* ret = new Manage(std::move(children), managerExprChildNum,

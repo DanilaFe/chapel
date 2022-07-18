@@ -98,7 +98,7 @@ class AstListNoCommentsIterator {
  public:
   using iterator_category = std::forward_iterator_tag;
   using value_type = const CastToType*;
-  using difference_type = AstList::const_iterator::difference_type;
+  using difference_type = AstList::difference_type;
   using pointer = const CastToType**;
   using reference = const CastToType*&;
 
@@ -114,7 +114,7 @@ class AstListNoCommentsIterator {
                                      AstList::const_iterator end)
     : it(start), end(end) {
 
-    while (this->it != this->end && this->it->get()->isComment()) {
+    while (this->it != this->end && (*this->it)->isComment()) {
       ++this->it;
     }
   }
@@ -132,24 +132,24 @@ class AstListNoCommentsIterator {
 
   // needs to support * and ->
   const CastToType* operator*() const {
-    return (const CastToType*) this->it->get();
+    return (const CastToType*) *this->it;
   }
   const CastToType* operator->() const {
-    return (const CastToType*) this->it->get();
+    return (const CastToType*) *this->it;
   }
 
   // needs to support preincrement and postincrement
   AstListNoCommentsIterator<CastToType>& operator++() {
     do {
       ++this->it;
-    } while (this->it != this->end && this->it->get()->isComment());
+    } while (this->it != this->end && (*this->it)->isComment());
     return *this;
   }
   AstListNoCommentsIterator<CastToType> operator++(int) {
     AstListNoCommentsIterator<CastToType> tmp = *this;
     do {
       ++this->it;
-    } while (this->it != this->end && this->it->get()->isComment());
+    } while (this->it != this->end && (*this->it)->isComment());
     return tmp;
   }
 

@@ -35,10 +35,10 @@ owned<Select> Select::build(Builder* builder, Location loc,
 
   lst.push_back(std::move(expr));
 
-  for (auto& ast : whenStmts) {
+  whenStmts.take_each([&lst](auto ast){
     assert(ast->isWhen());
     lst.push_back(std::move(ast));
-  }
+  });
 
   Select* ret = new Select(std::move(lst), numWhenStmts);
 

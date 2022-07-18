@@ -440,6 +440,11 @@ AstList ParserContext::consumeList(ParserExprList* lst) {
   return ret;
 }
 
+AstNode* keepOnlyFirst(AstList lst) {
+  AstNode* first = lst.release(lst.begin());
+  return first;
+}
+
 AstList ParserContext::consume(AstNode* e) {
   AstList ret;
   ret.push_back(toOwned(e));
@@ -1091,7 +1096,7 @@ owned<Decl> ParserContext::buildLoopIndexDecl(YYLTYPE location,
     noteError(location, msg);
     return nullptr;
   } else {
-    auto uncastedIndexExpr = consumeList(indexExprs)[0].release();
+    auto uncastedIndexExpr = keepOnlyFirst(consumeList(indexExprs));
     auto indexExpr = uncastedIndexExpr;
     assert(indexExpr);
     return buildLoopIndexDecl(location, toOwned(indexExpr));
@@ -1105,11 +1110,10 @@ AstNode* ParserContext::buildNewExpr(YYLTYPE location,
     return this->wrapCalledExpressionInNew(location, management, fnCall);
   } else if (OpCall* opCall = expr->toOpCall()) {
     assert(opCall->numActuals() == 1);
-    auto& child = builder->mutableRefToChildren(opCall)[0];
+    auto& child = *builder->mutableRefToChildren(opCall).begin();
     if (FnCall* fnCall = child->toFnCall()) {
-      child.release();
       auto wrappedFn = this->wrapCalledExpressionInNew(location, management, fnCall);
-      child.reset(wrappedFn);
+      child = wrappedFn;
       return expr;
     } else {
       //something wrong, as below
@@ -1151,13 +1155,13 @@ FnCall* ParserContext::wrapCalledExpressionInNew(YYLTYPE location,
   // Find the child slot containing the called expression. Then remove it,
   // wrap it in a new expression, and swap in the new expression.
   for (auto& child : builder->mutableRefToChildren(fnCall)) {
-    if (child.get() == fnCall->calledExpression()) {
-      auto calledExpr = std::move(child).release();
+    if (child == fnCall->calledExpression()) {
+      auto calledExpr = child;
       assert(calledExpr);
       auto newExpr = New::build(builder, convertLocation(location),
                                 toOwned(calledExpr),
                                 management);
-      child = std::move(newExpr);
+      child = newExpr.release();
       #ifndef NDEBUG
         wrappedBaseExpression = true;
       #endif
@@ -1287,7 +1291,7 @@ ParserContext::buildBracketLoopStmt(YYLTYPE locLeftBracket,
     const char* msg = "Invalid index expression";
     return { .comments=comments, .stmt=raiseError(locIndex, msg) };
   } else {
-    auto uncastedIndexExpr = consumeList(indexExprs)[0].release();
+    auto uncastedIndexExpr = keepOnlyFirst(consumeList(indexExprs));
     indexExpr = uncastedIndexExpr;
   }
 
@@ -1330,7 +1334,7 @@ CommentsAndStmt ParserContext::buildBracketLoopStmt(YYLTYPE locLeftBracket,
     const char* msg = "Invalid iterand expression";
     return { .comments=comments, .stmt=raiseError(locIterExprs, msg) };
   } else {
-    auto uncastedIterandExpr = consumeList(iterExprs)[0].release();
+    auto uncastedIterandExpr = keepOnlyFirst(consumeList(iterExprs));
     iterandExpr = uncastedIterandExpr;
   }
 
@@ -2470,9 +2474,9 @@ ParserContext::buildLabelStmt(YYLTYPE location, PODUniqueString name,
     auto comments = gatherCommentsFromList(exprLst, location);
     auto astLst = consumeList(exprLst);
     Loop* loop = nullptr;
-    for (auto& ast : astLst) {
-      if (ast->isLoop()) {
-        loop = ast.release()->toLoop();
+    for (auto it = astLst.begin(); it != astLst.end(); it++) {
+      if ((*it)->isLoop()) {
+        loop = astLst.release(it)->toLoop();
         break;
       }
     }
