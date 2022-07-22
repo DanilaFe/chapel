@@ -35,6 +35,7 @@ struct Resolver {
   const types::CompositeType* inCompositeType = nullptr;
   const SubstitutionsMap* substitutions = nullptr;
   bool useGenericFormalDefaults = false;
+  bool useDefaultsForOtherFields = false;
   const TypedFnSignature* typedSignature = nullptr;
   const PoiScope* poiScope = nullptr;
 
@@ -129,7 +130,8 @@ struct Resolver {
                             const uast::AstNode* fieldStmt,
                             const types::CompositeType* compositeType,
                             ResolutionResultByPostorderID& byPostorder,
-                            bool useGenericFormalDefaults);
+                            bool useGenericFormalDefaults,
+                            bool useDefaultsForOtherFields);
 
   // set up Resolver to resolve instantiated field declaration types
   static Resolver
@@ -139,7 +141,8 @@ struct Resolver {
                                  const types::CompositeType* compositeType,
                                  const PoiScope* poiScope,
                                  ResolutionResultByPostorderID& byPostorder,
-                                 bool useGenericFormalDefaults);
+                                 bool useGenericFormalDefaults,
+                                 bool useDefaultsForOtherFields);
 
   // set up Resolver to resolve instantiated field declaration types
   // without knowing the CompositeType

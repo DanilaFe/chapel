@@ -619,8 +619,10 @@ const Type* initialTypeForTypeDecl(Context* context, ID declId) {
 const ResolvedFields& resolveFieldDecl(Context* context,
                                        const CompositeType* ct,
                                        ID fieldId,
-                                       bool useGenericFormalDefaults) {
-  QUERY_BEGIN(resolveFieldDecl, context, ct, fieldId, useGenericFormalDefaults);
+                                       bool useGenericFormalDefaults,
+                                       bool useDefaultsForOtherFields) {
+  QUERY_BEGIN(resolveFieldDecl, context, ct, fieldId,
+              useGenericFormalDefaults, useDefaultsForOtherFields);
 
   ResolvedFields result;
   bool isObjectType = false;
@@ -645,7 +647,8 @@ const ResolvedFields& resolveFieldDecl(Context* context,
       ResolutionResultByPostorderID r;
       auto visitor =
         Resolver::createForInitialFieldStmt(context, ad, fieldAst,
-                                            ct, r, useGenericFormalDefaults);
+                                            ct, r, useGenericFormalDefaults,
+                                            useDefaultsForOtherFields);
 
       // resolve the field types and set them in 'result'
       fieldAst->traverse(visitor);
@@ -660,7 +663,8 @@ const ResolvedFields& resolveFieldDecl(Context* context,
       auto visitor =
         Resolver::createForInstantiatedFieldStmt(context, ad, fieldAst, ct,
                                                  poiScope, r,
-                                                 useGenericFormalDefaults);
+                                                 useGenericFormalDefaults,
+                                                 useDefaultsForOtherFields);
 
       // resolve the field types and set them in 'result'
       fieldAst->traverse(visitor);
@@ -675,8 +679,10 @@ const ResolvedFields& resolveFieldDecl(Context* context,
 static
 const ResolvedFields& fieldsForTypeDeclQuery(Context* context,
                                              const CompositeType* ct,
-                                             bool useGenericFormalDefaults) {
-  QUERY_BEGIN(fieldsForTypeDeclQuery, context, ct, useGenericFormalDefaults);
+                                             bool useGenericFormalDefaults,
+                                             bool useDefaultsForOtherFields) {
+  QUERY_BEGIN(fieldsForTypeDeclQuery, context, ct,
+              useGenericFormalDefaults, useDefaultsForOtherFields);
 
   ResolvedFields result;
 
@@ -703,7 +709,9 @@ const ResolvedFields& fieldsForTypeDeclQuery(Context* context,
           child->isMultiDecl() ||
           child->isTupleDecl()) {
         const ResolvedFields& resolvedFields =
-          resolveFieldDecl(context, ct, child->id(), useGenericFormalDefaults);
+          resolveFieldDecl(context, ct, child->id(),
+                           useGenericFormalDefaults,
+                           useDefaultsForOtherFields);
         // Copy resolvedFields into result
         int n = resolvedFields.numFields();
         for (int i = 0; i < n; i++) {
@@ -725,10 +733,12 @@ const ResolvedFields& fieldsForTypeDeclQuery(Context* context,
 
 const ResolvedFields& fieldsForTypeDecl(Context* context,
                                         const CompositeType* ct,
-                                        bool useGenericFormalDefaults) {
+                                        bool useGenericFormalDefaults,
+                                        bool useDefaultsForOtherFields) {
 
   // try first with useGenericFormalDefaults=false
-  const auto& f = fieldsForTypeDeclQuery(context, ct, false);
+  const auto& f = fieldsForTypeDeclQuery(context, ct, false,
+                                         useDefaultsForOtherFields);
 
   // If useGenericFormalDefaults was requested and the type
   // is generic with defaults, compute the type again.
@@ -736,7 +746,7 @@ const ResolvedFields& fieldsForTypeDecl(Context* context,
   // result of the above query in most cases since most types
   // are not generic record/class with defaults.
   if (useGenericFormalDefaults && f.isGenericWithDefaults()) {
-    return fieldsForTypeDeclQuery(context, ct, true);
+    return fieldsForTypeDeclQuery(context, ct, true, false);
   }
 
   // Otherwise, use the value we just computed.
@@ -745,14 +755,16 @@ const ResolvedFields& fieldsForTypeDecl(Context* context,
 
 static const CompositeType* getTypeWithDefaults(Context* context,
                                                 const CompositeType* ct) {
-  // resolve the fields with useGenericFormalDefaults=false
-  const ResolvedFields& g = fieldsForTypeDecl(context, ct, false);
+  // resolve the fields with useGenericFormalDefaults=false and
+  // useDefaultsForOtherFields = false
+  const ResolvedFields& g = fieldsForTypeDecl(context, ct, false, false);
   if (!g.isGenericWithDefaults()) {
     return ct;
   }
 
-  // and with useGenericFormalDefaults=true
-  const ResolvedFields& r = fieldsForTypeDecl(context, ct, true);
+  // and with useGenericFormalDefaults=true and
+  // useDefaultsForOtherFields = false
+  const ResolvedFields& r = fieldsForTypeDecl(context, ct, true, false);
 
   // for any field that has a different type in r than in g, add
   // a substitution, and get the type with those substitutions.
@@ -868,9 +880,9 @@ static Type::Genericity getFieldsGenericity(Context* context,
   }
 
   if (context->isQueryRunning(fieldsForTypeDeclQuery,
-                              std::make_tuple(ct, false)) ||
+                              std::make_tuple(ct, false, true)) ||
       context->isQueryRunning(fieldsForTypeDeclQuery,
-                              std::make_tuple(ct, true))) {
+                              std::make_tuple(ct, true, true))) {
     // TODO: is there a better way to avoid problems with recursion here?
     return Type::CONCRETE;
   }
@@ -878,8 +890,12 @@ static Type::Genericity getFieldsGenericity(Context* context,
   // this setting is irrelevant for this query since the
   // isGenericWithDefaults will be computed either way.
   bool useGenericFormalDefaults = false;
+  // We want to test if a field is generic only by its own merit,
+  // and not because it references other generic fields.
+  bool useDefaultsForOtherFields = true;
   const ResolvedFields& f = fieldsForTypeDecl(context, ct,
-                                              useGenericFormalDefaults);
+                                              useGenericFormalDefaults,
+                                              useDefaultsForOtherFields);
 
   if (f.isGenericWithDefaults() &&
       (g == Type::CONCRETE || g == Type::GENERIC_WITH_DEFAULTS))
@@ -1028,8 +1044,10 @@ typeConstructorInitialQuery(Context* context, const Type* t)
 
     // attempt to resolve the fields
     bool useGenericFormalDefaults = false;
+    bool useDefaultsForOtherFields = false;
     const ResolvedFields& f = fieldsForTypeDecl(context, ct,
-                                                useGenericFormalDefaults);
+                                                useGenericFormalDefaults,
+                                                useDefaultsForOtherFields);
 
     // find the generic fields from the type and add
     // these as type constructor arguments.
@@ -1755,7 +1773,8 @@ static QualifiedType computeTypeOfField(Context* context,
 
     // Resolve the type of that field (or MultiDecl/TupleDecl)
     const auto& fields = resolveFieldDecl(context, ct, declId,
-                                          /*useGenericFormalDefaults*/ false);
+                                          /*useGenericFormalDefaults*/ false,
+                                          /*useDefaultsForOtherFields*/ false);
     int n = fields.numFields();
     for (int i = 0; i < n; i++) {
       if (fields.fieldDeclId(i) == fieldId) {

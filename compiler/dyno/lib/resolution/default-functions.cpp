@@ -129,7 +129,10 @@ generateInitSignature(Context* context, const CompositeType* inCompType) {
 
   // consult the fields to build up the remaining untyped formals
   const bool useGenericDefaults = false;
-  auto& rf = fieldsForTypeDecl(context, compType, useGenericDefaults);
+  const bool useDefaultsForOtherFields = false;
+  auto& rf = fieldsForTypeDecl(context, compType,
+                               useGenericDefaults,
+                               useDefaultsForOtherFields);
 
   // TODO: generic types
   if (rf.isGeneric()) {

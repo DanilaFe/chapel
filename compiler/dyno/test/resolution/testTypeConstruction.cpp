@@ -218,8 +218,10 @@ parseTypeAndFieldsOfX(Context* context, const char* program) {
   assert(ct != nullptr);
 
   bool useGenericFormalDefaults = false;
+  bool useDefaultsForOtherFields = false;
   const ResolvedFields& f = fieldsForTypeDecl(context, ct,
-                                              useGenericFormalDefaults);
+                                              useGenericFormalDefaults,
+                                              useDefaultsForOtherFields);
 
   return std::make_pair(t, &f);
 }
@@ -275,6 +277,7 @@ static void test5() {
 
   auto& initialFields = fieldsForTypeDecl(context,
                                           rt->instantiatedFrom(),
+                                          false,
                                           false);
   assert(rt->instantiatedFrom()->instantiatedFrom() == nullptr);
   assert(initialFields.numFields() == 1);
@@ -1183,7 +1186,7 @@ static void test38() {
   assert(pct->parentClassType()->isObjectType());
   assert(pct->parentClassType() == BasicClassType::getObjectType(context));
 
-  auto& parentFields = fieldsForTypeDecl(context, pct, true);
+  auto& parentFields = fieldsForTypeDecl(context, pct, true, false);
   assert(parentFields.numFields() == 1);
   assert(parentFields.fieldName(0) == "parentField");
   assert(parentFields.fieldHasDefaultValue(0) == false);

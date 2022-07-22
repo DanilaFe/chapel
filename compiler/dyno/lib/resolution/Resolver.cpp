@@ -243,11 +243,13 @@ Resolver::createForInitialFieldStmt(Context* context,
                                     const AstNode* fieldStmt,
                                     const CompositeType* compositeType,
                                     ResolutionResultByPostorderID& byId,
-                                    bool useGenericFormalDefaults) {
+                                    bool useGenericFormalDefaults,
+                                    bool useDefaultsForOtherFields) {
   auto ret = Resolver(context, decl, byId, nullptr);
   ret.curStmt = fieldStmt;
   ret.inCompositeType = compositeType;
   ret.useGenericFormalDefaults = useGenericFormalDefaults;
+  ret.useDefaultsForOtherFields = useDefaultsForOtherFields;
   ret.byPostorder.setupForSymbol(decl);
   return ret;
 }
@@ -260,12 +262,14 @@ Resolver::createForInstantiatedFieldStmt(Context* context,
                                          const CompositeType* compositeType,
                                          const PoiScope* poiScope,
                                          ResolutionResultByPostorderID& byId,
-                                         bool useGenericFormalDefaults) {
+                                         bool useGenericFormalDefaults,
+                                         bool useDefaultsForOtherFields) {
   auto ret = Resolver(context, decl, byId, poiScope);
   ret.curStmt = fieldStmt;
   ret.inCompositeType = compositeType;
   ret.substitutions = &compositeType->substitutions();
   ret.useGenericFormalDefaults = useGenericFormalDefaults;
+  ret.useDefaultsForOtherFields = useDefaultsForOtherFields;
   ret.byPostorder.setupForSymbol(decl);
   return ret;
 }
@@ -1221,8 +1225,14 @@ QualifiedType Resolver::typeForId(const ID& id, bool localGenericToUnknown) {
     if (ct) {
       // if it is recursive within the current class/record, we can
       // call resolveField.
+      bool newUseGenericFormalDefaults = this->useGenericFormalDefaults;
+      if (useDefaultsForOtherFields) {
+        newUseGenericFormalDefaults = true;
+      }
       const ResolvedFields& resolvedFields =
-        resolveFieldDecl(context, ct, id, useGenericFormalDefaults);
+        resolveFieldDecl(context, ct, id,
+                         newUseGenericFormalDefaults,
+                         /* useDefaultsForOtherFields */ false);
       // find the field that matches
       int nFields = resolvedFields.numFields();
       for (int i = 0; i < nFields; i++) {

@@ -100,7 +100,8 @@ const types::Type* initialTypeForTypeDecl(Context* context, ID declId);
 const ResolvedFields& resolveFieldDecl(Context* context,
                                        const types::CompositeType* ct,
                                        ID fieldId,
-                                       bool useGenericFormalDefaults);
+                                       bool useGenericFormalDefaults,
+                                       bool useDefaultsForOtherFields);
 
 /**
   Compute the types of the fields for a CompositeType
@@ -120,7 +121,8 @@ const ResolvedFields& resolveFieldDecl(Context* context,
  */
 const ResolvedFields& fieldsForTypeDecl(Context* context,
                                         const types::CompositeType* ct,
-                                        bool useGenericFormalDefaults);
+                                        bool useGenericFormalDefaults,
+                                        bool useDefaultsForOtherFields);
 
 /**
   Return true if 'name' is the name of a field for type 't'
