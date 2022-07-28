@@ -74,6 +74,9 @@ class Union final : public AggregateDecl {
   }
 
  public:
+  Union(Union&&) = default;
+
+ public:
   ~Union() override = default;
 
   static owned<Union> build(Builder* builder, Location loc,

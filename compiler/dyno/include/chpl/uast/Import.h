@@ -70,6 +70,9 @@ class Import final : public AstNode {
   Decl::Visibility visibility_;
 
  public:
+  Import(Import&&) = default;
+
+ public:
 
   /**
     Create and return an import statement.

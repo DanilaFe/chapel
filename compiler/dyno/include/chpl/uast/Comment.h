@@ -58,6 +58,9 @@ class Comment final : public AstNode {
   }
 
  public:
+  Comment(Comment&&) = default;
+
+ public:
   ~Comment() override = default;
   static owned<Comment> build(Builder* builder, Location loc, std::string c);
 

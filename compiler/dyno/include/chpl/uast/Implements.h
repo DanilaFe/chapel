@@ -88,6 +88,9 @@ class Implements final : public AstNode {
   void markUniqueStringsInner(Context* context) const override {}
 
  public:
+  Implements(Implements&&) = default;
+
+ public:
   ~Implements() override = default;
 
   /**

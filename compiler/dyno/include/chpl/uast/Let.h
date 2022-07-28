@@ -61,6 +61,9 @@ class Let final : public AstNode {
   }
 
  public:
+  Let(Let&&) = default;
+
+ public:
   ~Let() override = default;
 
   /**

@@ -80,6 +80,8 @@ class SimpleBlockLike : public AstNode {
   int bodyChildNum_;
   int numBodyStmts_;
 
+ protected:
+  SimpleBlockLike(SimpleBlockLike&&) = default;
  public:
   virtual ~SimpleBlockLike() override = 0; // this is an abstract base class
 

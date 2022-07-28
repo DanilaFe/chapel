@@ -60,6 +60,9 @@ class Yield final : public AstNode {
   static const int8_t valueChildNum_ = 0;
 
  public:
+  Yield(Yield&&) = default;
+
+ public:
   ~Yield() override = default;
 
   /**

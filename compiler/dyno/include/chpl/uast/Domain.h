@@ -59,6 +59,9 @@ class Domain final : public AstNode {
   }
 
  public:
+  Domain(Domain&&) = default;
+
+ public:
   ~Domain() override = default;
 
   /**

@@ -111,6 +111,9 @@ class Conditional final : public AstNode {
   bool isExpressionLevel_;
 
  public:
+  Conditional(Conditional&&) = default;
+
+ public:
   ~Conditional() override = default;
 
   /**

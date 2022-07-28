@@ -55,6 +55,9 @@ class Array final : public AstNode {
   }
 
  public:
+  Array(Array&&) = default;
+
+ public:
   ~Array() override = default;
 
   /**

@@ -40,6 +40,9 @@ class ImagLiteral final : public NumericLiteral<double, types::RealParam> {
   // and would need to be defined here if any fields are added.
 
  public:
+  ImagLiteral(ImagLiteral&&) = default;
+
+ public:
   ~ImagLiteral() override = default;
 
   static owned<ImagLiteral> build(Builder* builder, Location loc,

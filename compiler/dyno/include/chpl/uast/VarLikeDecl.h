@@ -77,6 +77,9 @@ class VarLikeDecl : public NamedDecl {
     namedDeclMarkUniqueStringsInner(context);
   }
 
+ protected:
+  VarLikeDecl(VarLikeDecl&&) = default;
+
  public:
   ~VarLikeDecl() = 0; // this is an abstract base class
 

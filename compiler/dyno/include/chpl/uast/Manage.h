@@ -80,6 +80,9 @@ class Manage final : public SimpleBlockLike {
   }
 
  public:
+  Manage(Manage&&) = default;
+
+ public:
   ~Manage() override = default;
 
   /**

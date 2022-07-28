@@ -44,6 +44,7 @@ class Loop: public AstNode {
            loopBodyChildNum_ < (int) children_.size());
     assert(children_[loopBodyChildNum_]->isBlock());
   }
+  Loop(Loop&&) = default;
 
   bool loopContentsMatchInner(const Loop* other) const {
     const Loop* lhs = this;

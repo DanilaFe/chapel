@@ -47,6 +47,9 @@ class BoolLiteral final : public Literal {
   }
 
  public:
+  BoolLiteral(BoolLiteral&&) = default;
+
+ public:
   ~BoolLiteral() override = default;
 
   /**

@@ -51,6 +51,9 @@ namespace uast {
 class Variable final : public VarLikeDecl {
  friend class Builder;
  public:
+  Variable(Variable&&) = default;
+
+ public:
   enum Kind {
     // Use IntentList here for consistent enum values.
     VAR         = (int) IntentList::VAR,

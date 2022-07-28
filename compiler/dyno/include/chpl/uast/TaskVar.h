@@ -46,6 +46,9 @@ namespace uast {
   ref intent.
  */
 class TaskVar final : public VarLikeDecl {
+  public:
+    TaskVar(TaskVar&&) = default;
+
  public:
   enum Intent {
     // Use IntentList here for consistent enum values.

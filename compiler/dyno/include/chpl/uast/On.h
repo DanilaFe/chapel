@@ -62,6 +62,9 @@ class On final : public SimpleBlockLike {
   static const int8_t destChildNum_ = 0;
 
  public:
+  On(On&&) = default;
+
+ public:
 
   /**
     Create and return an on statement.

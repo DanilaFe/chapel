@@ -70,6 +70,9 @@ class Attributes final : public AstNode {
   }
 
  public:
+  Attributes(Attributes&&) = default;
+
+ public:
   ~Attributes() override = default;
 
   static owned<Attributes> build(Builder* builder, Location loc,

@@ -68,6 +68,9 @@ class Coforall final : public IndexableLoop {
   }
 
  public:
+  Coforall(Coforall&&) = default;
+
+ public:
   ~Coforall() override = default;
 
   /**

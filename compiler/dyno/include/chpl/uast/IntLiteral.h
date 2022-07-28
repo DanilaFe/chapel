@@ -44,6 +44,9 @@ class IntLiteral final : public NumericLiteral<int64_t, types::IntParam> {
   // and would need to be defined here if any fields are added.
 
  public:
+  IntLiteral(IntLiteral&&) = default;
+
+ public:
   ~IntLiteral() override = default;
 
   static owned<IntLiteral> build(Builder* builder, Location loc,

@@ -69,6 +69,9 @@ class Catch final : public AstNode {
   bool hasParensAroundError_;
 
  public:
+  Catch(Catch&&) = default;
+
+ public:
   ~Catch() override = default;
 
   /**

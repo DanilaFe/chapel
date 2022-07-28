@@ -46,6 +46,9 @@ class Zip final : public Call {
   }
 
  public:
+  Zip(Zip&&) = default;
+
+ public:
   ~Zip() override = default;
 
   /**

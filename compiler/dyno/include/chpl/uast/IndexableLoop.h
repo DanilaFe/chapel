@@ -82,6 +82,9 @@ class IndexableLoop : public Loop {
   int8_t withClauseChildNum_;
   bool isExpressionLevel_;
 
+ protected:
+  IndexableLoop(IndexableLoop&&) = default;
+
  public:
   virtual ~IndexableLoop() override = 0; // this is an abstract base class
 

@@ -41,6 +41,9 @@ namespace uast {
   The Formals are stored inside of a Function.
  */
 class Formal final : public VarLikeDecl {
+  public:
+    Formal(Formal&&) = default;
+
  public:
   enum Intent {
     // Use IntentList here for consistent enum values.

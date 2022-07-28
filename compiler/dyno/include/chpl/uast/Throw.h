@@ -58,6 +58,9 @@ class Throw final : public AstNode {
   static const int8_t errorExprChildNum_ = 0;
 
  public:
+  Throw(Throw&&) = default;
+
+ public:
 
   /**
     Create and return a throw statement.

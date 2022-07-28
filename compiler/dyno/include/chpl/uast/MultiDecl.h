@@ -80,6 +80,9 @@ class MultiDecl final : public Decl {
   }
 
  public:
+  MultiDecl(MultiDecl&&) = default;
+
+ public:
   ~MultiDecl() override = default;
 
   static owned<MultiDecl> build(Builder* builder, Location loc,

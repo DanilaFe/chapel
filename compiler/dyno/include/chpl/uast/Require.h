@@ -52,6 +52,9 @@ class Require final : public AstNode {
   }
 
  public:
+  Require(Require&&) = default;
+
+ public:
   ~Require() override = default;
 
   /**

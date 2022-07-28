@@ -91,6 +91,9 @@ class Interface final : public NamedDecl {
   }
 
  public:
+  Interface(Interface&&) = default;
+
+ public:
   ~Interface() override = default;
 
   /**

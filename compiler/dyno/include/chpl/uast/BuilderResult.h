@@ -77,6 +77,7 @@ class BuilderResult final {
   BuilderResult();
   /** Construct a BuilderResult that records a particular file path. */
   BuilderResult(UniqueString filePath);
+  ~BuilderResult();
 
   /** Return the file path this result refers to */
   UniqueString filePath() const {

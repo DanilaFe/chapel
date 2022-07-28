@@ -70,6 +70,9 @@ class Label final : public AstNode {
   UniqueString name_;
 
  public:
+  Label(Label&&) = default;
+
+ public:
   ~Label() override = default;
 
   /**

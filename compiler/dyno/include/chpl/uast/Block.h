@@ -49,6 +49,9 @@ class Block final : public SimpleBlockLike {
   void markUniqueStringsInner(Context* context) const override {
     simpleBlockLikeMarkUniqueStringsInner(context);
   }
+  
+ public:
+  Block(Block&&) = default;
 
  public:
   ~Block() override = default;

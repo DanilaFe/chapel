@@ -63,6 +63,9 @@ class NamedDecl : public Decl {
     name_.mark(context);
   }
 
+ protected:
+  NamedDecl(NamedDecl&&) = default;
+
  public:
   virtual ~NamedDecl() = 0; // this is an abstract base class
 

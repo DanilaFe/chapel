@@ -51,6 +51,9 @@ class Call : public AstNode {
   }
 
  public:
+  Call(Call&&) = default;
+
+ public:
   ~Call() override = 0;
 
   /**

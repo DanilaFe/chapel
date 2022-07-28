@@ -65,6 +65,9 @@ class Return final : public AstNode {
   int8_t valueChildNum_;
 
  public:
+  Return(Return&&) = default;
+
+ public:
   ~Return() override = default;
 
   /**

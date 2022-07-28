@@ -70,6 +70,9 @@ class PrimCall final : public Call {
   }
 
  public:
+  PrimCall(PrimCall&&) = default;
+
+ public:
   ~PrimCall() override = default;
   static owned<PrimCall> build(Builder* builder,
                                Location loc,

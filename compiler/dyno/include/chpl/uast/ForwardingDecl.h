@@ -83,6 +83,9 @@ private:
     return this->attributesChildNum() + 1;
   }
 
+public:
+  ForwardingDecl(ForwardingDecl&&) = default;
+
  public:
   ~ForwardingDecl() override = default;
 

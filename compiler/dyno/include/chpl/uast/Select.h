@@ -66,6 +66,9 @@ class Select final : public AstNode {
   int numWhenStmts_;
 
  public:
+  Select(Select&&) = default;
+
+ public:
 
   /**
     Create and return a select statement.

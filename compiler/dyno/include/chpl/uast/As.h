@@ -57,6 +57,9 @@ class As final : public AstNode {
   static const int8_t renameChildNum_ = 1;
 
  public:
+  As(As&&) = default;
+
+ public:
   ~As() override = default;
 
   /**

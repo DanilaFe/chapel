@@ -33,6 +33,9 @@ namespace uast {
   however these declarations might be contained in MultiDecl or TupleDecl.
  */
 class Decl : public AstNode {
+  protected:
+    Decl(Decl&&) = default;
+
  public:
   enum Visibility {
     DEFAULT_VISIBILITY,

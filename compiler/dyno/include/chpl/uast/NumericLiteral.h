@@ -52,6 +52,9 @@ class NumericLiteral : public Literal {
     text_.mark(context);
   }
 
+ protected:
+  NumericLiteral(NumericLiteral&&) = default;
+
  public:
   virtual ~NumericLiteral() = 0; // this is an abstract base class
 

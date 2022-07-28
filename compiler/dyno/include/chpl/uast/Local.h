@@ -79,6 +79,9 @@ class Local final : public SimpleBlockLike {
   int8_t condChildNum_;
 
  public:
+  Local(Local&&) = default;
+
+ public:
 
   /**
     Create and return a local statement containing the passed statements.

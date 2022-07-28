@@ -76,6 +76,9 @@ class Class final : public AggregateDecl {
   }
 
  public:
+  Class(Class&&) = default;
+
+ public:
   ~Class() override = default;
 
   static owned<Class> build(Builder* builder, Location loc,

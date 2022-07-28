@@ -63,6 +63,9 @@ class Continue : public AstNode {
   int8_t targetChildNum_;
 
  public:
+  Continue(Continue&&) = default;
+
+ public:
 
   /**
     Create and return a continue statement.

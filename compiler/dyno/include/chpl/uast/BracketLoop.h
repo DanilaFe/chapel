@@ -67,6 +67,9 @@ class BracketLoop final : public IndexableLoop {
   }
 
  public:
+  BracketLoop(BracketLoop&&) = default;
+
+ public:
   ~BracketLoop() override = default;
 
   /**

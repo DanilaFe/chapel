@@ -69,6 +69,9 @@ class Sync final : public SimpleBlockLike {
   }
 
  public:
+  Sync(Sync&&) = default;
+
+ public:
   ~Sync() override = default;
 
   /**

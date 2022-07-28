@@ -60,6 +60,9 @@ class When final : public SimpleBlockLike {
   int numCaseExprs_;
 
  public:
+  When(When&&) = default;
+
+ public:
 
   /**
     Create and return a when statement. If 'caseExprs' is empty then

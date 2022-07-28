@@ -89,6 +89,9 @@ class FnCall : public Call {
   }
 
  public:
+  FnCall(FnCall&&) = default;
+
+ public:
   ~FnCall() override = default;
   static owned<FnCall> build(Builder* builder,
                              Location loc,

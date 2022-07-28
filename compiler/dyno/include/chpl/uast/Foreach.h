@@ -70,6 +70,9 @@ class Foreach final : public IndexableLoop {
   }
 
  public:
+  Foreach(Foreach&&) = default;
+
+ public:
   ~Foreach() override = default;
 
   /**

@@ -42,6 +42,9 @@ class ErroneousExpression final : public AstNode {
   }
 
  public:
+  ErroneousExpression(ErroneousExpression&&) = default;
+
+ public:
   ~ErroneousExpression() = default;
   static owned<ErroneousExpression> build(Builder* builder, Location loc);
 };

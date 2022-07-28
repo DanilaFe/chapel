@@ -71,6 +71,9 @@ class Include final : public AstNode {
   }
 
  public:
+  Include(Include&&) = default;
+
+ public:
 
   /**
     Create and return an include statement.

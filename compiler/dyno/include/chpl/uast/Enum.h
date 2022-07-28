@@ -78,6 +78,9 @@ class Enum final : public TypeDecl {
   }
 
  public:
+  Enum(Enum&&) = default;
+
+ public:
   ~Enum() override = default;
 
   static owned<Enum> build(Builder* builder, Location loc,

@@ -49,6 +49,9 @@ class Literal : public AstNode {
   }
 
  public:
+  Literal(Literal&&) = default;
+
+ public:
   virtual ~Literal() = 0; // this is an abstract base class
 
   /**

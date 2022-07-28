@@ -71,6 +71,9 @@ class Record final : public AggregateDecl {
   }
 
  public:
+  Record(Record&&) = default;
+
+ public:
   ~Record() override = default;
 
   static owned<Record> build(Builder* builder, Location loc,

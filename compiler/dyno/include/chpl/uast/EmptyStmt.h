@@ -57,6 +57,9 @@ private:
   }
 
 public:
+  EmptyStmt(EmptyStmt&&) = default;
+
+public:
   ~EmptyStmt() override = default;
 
   /**

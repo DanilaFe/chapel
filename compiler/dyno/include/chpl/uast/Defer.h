@@ -66,6 +66,9 @@ class Defer final : public SimpleBlockLike {
   }
 
  public:
+  Defer(Defer&&) = default;
+
+ public:
   ~Defer() override = default;
 
   /**

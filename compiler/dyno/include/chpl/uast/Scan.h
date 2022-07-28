@@ -60,6 +60,9 @@ class Scan final : public Call {
   }
 
  public:
+  Scan(Scan&&) = default;
+
+ public:
   ~Scan() override = default;
 
   /**

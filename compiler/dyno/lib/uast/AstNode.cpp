@@ -27,6 +27,7 @@
 #include "chpl/uast/chpl-syntax-printer.h"
 
 #include <iomanip>
+#include <utility>
 
 namespace chpl {
 namespace uast {
@@ -326,6 +327,114 @@ void AstNode::stringify(std::ostream& ss,
 }
 
 IMPLEMENT_DUMP(AstNode);
+
+size_t AstNode::computeSize() {
+  switch (this->tag()) {
+    #define CASE_LEAF(NAME) \
+      case asttags::NAME: \
+      { \
+        return sizeof(NAME); \
+      }
+
+    #define CASE_NODE(NAME) \
+      case asttags::NAME: \
+      { \
+        size_t total = sizeof(NAME); \
+        for (auto& childPtr : this->children_) { \
+          total += childPtr->computeSize(); \
+        } \
+        return total; \
+      }
+
+    #define CASE_OTHER(NAME) \
+      case asttags::NAME: \
+      { \
+        assert(false && "this code should never be run"); \
+        return 0; \
+      }
+
+    #define AST_NODE(NAME) CASE_NODE(NAME)
+    #define AST_LEAF(NAME) CASE_LEAF(NAME)
+    #define AST_BEGIN_SUBCLASSES(NAME) CASE_OTHER(START_##NAME)
+    #define AST_END_SUBCLASSES(NAME) CASE_OTHER(END_##NAME)
+
+    // Apply the above macros to uast-classes-list.h
+    // to fill in the cases
+    #include "chpl/uast/uast-classes-list.h"
+    // and also for NUM_AST_TAGS
+    CASE_OTHER(NUM_AST_TAGS)
+    CASE_OTHER(AST_TAG_UNKNOWN)
+
+    // clear the macros
+    #undef AST_NODE
+    #undef AST_LEAF
+    #undef AST_BEGIN_SUBCLASSES
+    #undef AST_END_SUBCLASSES
+    #undef CASE_LEAF
+    #undef CASE_NODE
+    #undef CASE_OTHER
+  }
+}
+
+AstNode* AstNode::blockAllocate(char*& buffer) {
+  switch (this->tag()) {
+    #define CASE_LEAF(NAME) \
+      case asttags::NAME: \
+      { \
+        assert(this->numChildren() == 0); \
+        NAME* casted = (NAME*) this; \
+        NAME* newNode = new (buffer) NAME(std::move(*casted)); \
+        buffer += sizeof(NAME); \
+        return newNode; \
+      }
+
+    #define CASE_NODE(NAME) \
+      case asttags::NAME: \
+      { \
+        NAME* casted = (NAME*) this; \
+        for (auto& childPtr : this->children_) { \
+          auto newChild = childPtr->blockAllocate(buffer); \
+          childPtr = toOwned(newChild); \
+        } \
+        NAME* newNode = new (buffer) NAME(std::move(*casted)); \
+        buffer += sizeof(NAME); \
+        return newNode; \
+      }
+
+    #define CASE_OTHER(NAME) \
+      case asttags::NAME: \
+      { \
+        assert(false && "this code should never be run"); \
+        return nullptr; \
+      }
+
+    #define AST_NODE(NAME) CASE_NODE(NAME)
+    #define AST_LEAF(NAME) CASE_LEAF(NAME)
+    #define AST_BEGIN_SUBCLASSES(NAME) CASE_OTHER(START_##NAME)
+    #define AST_END_SUBCLASSES(NAME) CASE_OTHER(END_##NAME)
+
+    // Apply the above macros to uast-classes-list.h
+    // to fill in the cases
+    #include "chpl/uast/uast-classes-list.h"
+    // and also for NUM_AST_TAGS
+    CASE_OTHER(NUM_AST_TAGS)
+    CASE_OTHER(AST_TAG_UNKNOWN)
+
+    // clear the macros
+    #undef AST_NODE
+    #undef AST_LEAF
+    #undef AST_BEGIN_SUBCLASSES
+    #undef AST_END_SUBCLASSES
+    #undef CASE_LEAF
+    #undef CASE_NODE
+    #undef CASE_OTHER
+  }
+}
+
+AstNode* AstNode::blockAllocate() {
+  char* buffer = new char[computeSize()];
+  return blockAllocate(buffer);
+}
 
 } // end namespace uast
 } // end namespace chpl

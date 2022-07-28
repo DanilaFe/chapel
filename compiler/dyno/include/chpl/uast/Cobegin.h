@@ -79,6 +79,9 @@ class Cobegin final : public AstNode {
   int numTaskBodies_;
 
  public:
+  Cobegin(Cobegin&&) = default;
+
+ public:
 
   /**
     Create and return a cobegin statement.

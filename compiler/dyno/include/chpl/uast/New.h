@@ -39,6 +39,9 @@ namespace uast {
   is a New node (representing 'new bar').
 */
 class New : public AstNode {
+  public:
+    New(New&&) = default;
+
  public:
 
   /**

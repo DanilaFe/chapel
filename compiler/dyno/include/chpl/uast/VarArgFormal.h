@@ -76,6 +76,9 @@ class VarArgFormal final : public VarLikeDecl {
   }
 
  public:
+  VarArgFormal(VarArgFormal&&) = default;
+
+ public:
   ~VarArgFormal() override = default;
 
   static owned<VarArgFormal> build(Builder* builder, Location loc,

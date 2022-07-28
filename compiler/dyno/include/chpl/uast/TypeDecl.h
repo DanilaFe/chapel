@@ -52,6 +52,9 @@ class TypeDecl : public NamedDecl {
     namedDeclMarkUniqueStringsInner(context);
   }
 
+ protected:
+  TypeDecl(TypeDecl&&) = default;
+
  public:
   virtual ~TypeDecl() = 0; // this is an abstract base class
 };

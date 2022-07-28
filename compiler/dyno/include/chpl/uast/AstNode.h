@@ -94,6 +94,7 @@ class AstNode {
 
  public:
   virtual ~AstNode() = 0; // this is an abstract base class
+  AstNode(AstNode&&) = default;
 
   /**
     Returns the tag indicating which AstNode subclass this is.
@@ -293,8 +294,11 @@ class AstNode {
     }
   };
 
+  size_t computeSize();
+  AstNode* blockAllocate(char*& buffer);
  public:
 
+  AstNode* blockAllocate();
   /**
      The dispatch function supports calling a method according to the tag
      (aka runtime type) of a uast node. It does not itself visit

@@ -54,6 +54,9 @@ namespace uast {
 
  */
 class TupleDecl final : public Decl {
+  public:
+    TupleDecl(TupleDecl&&) = default;
+
  public:
   enum IntentOrKind {
     DEFAULT_INTENT = (int) IntentList::DEFAULT_INTENT,

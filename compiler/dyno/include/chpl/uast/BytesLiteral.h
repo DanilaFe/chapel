@@ -43,6 +43,9 @@ class BytesLiteral final : public StringLikeLiteral {
   // and would need to be defined here if any fields are added.
 
  public:
+  BytesLiteral(BytesLiteral&&) = default;
+
+ public:
   ~BytesLiteral() override = default;
 
   static owned<BytesLiteral> build(Builder* builder, Location loc,

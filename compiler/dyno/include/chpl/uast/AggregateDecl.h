@@ -61,6 +61,9 @@ class AggregateDecl : public TypeDecl {
     typeDeclMarkUniqueStringsInner(context);
   }
 
+ protected:
+  AggregateDecl(AggregateDecl&&) = default;
+
  public:
   AggregateDecl(AstTag tag, AstList children, int attributesChildNum,
                 Decl::Visibility vis,

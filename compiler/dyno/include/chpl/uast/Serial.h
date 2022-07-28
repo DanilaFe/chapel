@@ -79,6 +79,9 @@ class Serial final : public SimpleBlockLike {
   int8_t condChildNum_;
 
  public:
+  Serial(Serial&&) = default;
+
+ public:
 
   /**
     Create and return a serial statement containing the passed statements.

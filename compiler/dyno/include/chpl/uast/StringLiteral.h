@@ -42,6 +42,9 @@ class StringLiteral final : public StringLikeLiteral {
   // and would need to be defined here if any fields are added.
 
  public:
+  StringLiteral(StringLiteral&&) = default;
+
+ public:
   ~StringLiteral() override = default;
 
   static owned<StringLiteral> build(Builder* builder, Location loc,
@@ -56,6 +59,10 @@ class StringLiteral final : public StringLikeLiteral {
     assert(value_->isStringParam());
     const types::StringParam* p = (const types::StringParam*) value_;
     return p->value();
+  }
+
+  StringLiteral* dumb() {
+    return new StringLiteral(std::move(*this));
   }
 };
 

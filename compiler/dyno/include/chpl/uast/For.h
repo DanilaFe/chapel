@@ -82,6 +82,9 @@ class For final : public IndexableLoop {
   bool isParam_;
 
  public:
+  For(For&&) = default;
+
+ public:
   ~For() override = default;
 
   /**

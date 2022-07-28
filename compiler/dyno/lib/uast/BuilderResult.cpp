@@ -42,6 +42,13 @@ BuilderResult::BuilderResult(UniqueString filePath)
 {
 }
 
+BuilderResult::~BuilderResult() {
+  for(auto& node : topLevelExpressions_) {
+    auto released = node.release();
+    (void) released;
+  }
+}
+
 // Computes idToAst and idToParent maps by visiting all uAST nodes
 static
 void computeIdMaps(

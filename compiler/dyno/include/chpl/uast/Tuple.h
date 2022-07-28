@@ -57,6 +57,9 @@ class Tuple final : public Call {
   }
 
  public:
+  Tuple(Tuple&&) = default;
+
+ public:
   ~Tuple() override = default;
 
   /**

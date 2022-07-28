@@ -48,6 +48,9 @@ namespace uast {
   each of these is a Function.
  */
 class Function final : public NamedDecl {
+  public:
+    Function(Function&&) = default;
+
  public:
   enum Kind {
     PROC,

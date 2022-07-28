@@ -64,6 +64,9 @@ class ExternBlock final : public AstNode {
   }
 
  public:
+  ExternBlock(ExternBlock&&) = default;
+
+ public:
   ~ExternBlock() override = default;
 
   /**

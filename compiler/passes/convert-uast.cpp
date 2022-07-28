@@ -63,7 +63,7 @@ using namespace chpl;
 
 namespace {
 
-const bool tryToScopeResolveEverything = false;
+const bool tryToScopeResolveEverything = true;
 
 struct ConvertedSymbolsMap {
   ID inSymbolId;

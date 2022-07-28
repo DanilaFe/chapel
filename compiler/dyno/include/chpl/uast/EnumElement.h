@@ -71,6 +71,9 @@ class EnumElement final : public NamedDecl {
   }
 
  public:
+  EnumElement(EnumElement&&) = default;
+
+ public:
   ~EnumElement() override = default;
 
   static owned<EnumElement> build(Builder* builder, Location loc,

@@ -39,6 +39,9 @@ namespace uast {
   is a declaration for a module named M.
  */
 class Module final : public NamedDecl {
+  public:
+    Module(Module&&) = default;
+
  public:
   enum Kind {
     DEFAULT_MODULE_KIND,

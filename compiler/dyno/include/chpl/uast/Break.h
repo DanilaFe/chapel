@@ -64,6 +64,9 @@ class Break : public AstNode {
   int8_t targetChildNum_;
 
  public:
+  Break(Break&&) = default;
+
+ public:
 
   /**
     Create and return a break statement.

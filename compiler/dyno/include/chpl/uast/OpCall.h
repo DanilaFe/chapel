@@ -64,6 +64,9 @@ class OpCall final : public Call {
   }
 
  public:
+  OpCall(OpCall&&) = default;
+
+ public:
   ~OpCall() override = default;
   static owned<OpCall> build(Builder* builder,
                              Location loc,

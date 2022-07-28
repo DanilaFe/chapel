@@ -84,6 +84,9 @@ class Reduce final : public Call {
 
 
  public:
+  Reduce(Reduce&&) = default;
+
+ public:
   ~Reduce() override = default;
 
   /**

@@ -76,6 +76,9 @@ class DoWhile final : public Loop {
   int conditionChildNum_;
 
  public:
+  DoWhile(DoWhile&&) = default;
+
+ public:
   ~DoWhile() override = default;
 
   /**

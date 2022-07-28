@@ -42,6 +42,9 @@ class UintLiteral final : public NumericLiteral<uint64_t, types::UintParam> {
   // and would need to be defined here if any fields are added.
 
  public:
+  UintLiteral(UintLiteral&&) = default;
+
+ public:
   ~UintLiteral() override = default;
 
   static owned<UintLiteral> build(Builder* builder, Location loc,

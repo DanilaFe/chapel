@@ -76,6 +76,9 @@ class Use final : public AstNode {
   Decl::Visibility visibility_;
 
  public:
+  Use(Use&&) = default;
+
+ public:
 
   /**
     Create and return a use statement.

@@ -53,6 +53,9 @@ class Delete final : public AstNode {
   }
 
  public:
+  Delete(Delete&&) = default;
+
+ public:
 
   /**
     Create and return a delete statement.

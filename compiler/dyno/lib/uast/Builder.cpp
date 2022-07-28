@@ -127,6 +127,10 @@ BuilderResult Builder::result() {
   ret.idToAst_.swap(idToAst_);
   ret.idToLocation_.swap(idToLocation_);
   ret.commentIdToLocation_.swap(commentToLocation_);
+  for (auto& ast : ret.topLevelExpressions_) {
+    auto oldNode = ast.release();
+    ast = toOwned(oldNode->blockAllocate());
+  }
 
   return ret;
 }

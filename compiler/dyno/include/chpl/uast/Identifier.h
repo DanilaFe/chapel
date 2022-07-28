@@ -60,6 +60,9 @@ class Identifier final : public AstNode {
   }
 
  public:
+  Identifier(Identifier&&) = default;
+
+ public:
   ~Identifier() override = default;
   static owned<Identifier> build(Builder* builder, Location loc, UniqueString name);
   UniqueString name() const { return name_; }

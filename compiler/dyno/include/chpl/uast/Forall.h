@@ -70,6 +70,9 @@ class Forall final : public IndexableLoop {
   }
 
  public:
+  Forall(Forall&&) = default;
+
+ public:
   ~Forall() override = default;
 
   /**

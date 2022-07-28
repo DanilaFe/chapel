@@ -44,6 +44,9 @@ namespace uast {
   \endrst
  */
 class VisibilityClause final : public AstNode {
+  public:
+    VisibilityClause(VisibilityClause&&) = default;
+
  public:
 
   /**

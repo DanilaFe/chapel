@@ -76,6 +76,9 @@ class Begin final : public SimpleBlockLike {
   int8_t withClauseChildNum_;
 
  public:
+  Begin(Begin&&) = default;
+
+ public:
 
   /**
     Create and return a begin statement.

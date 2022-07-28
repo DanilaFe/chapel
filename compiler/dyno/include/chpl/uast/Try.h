@@ -88,6 +88,9 @@ class Try final : public AstNode {
   bool isTryBang_;
 
  public:
+  Try(Try&&) = default;
+
+ public:
   ~Try() override = default;
 
   /**

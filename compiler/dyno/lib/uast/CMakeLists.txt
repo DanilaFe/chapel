@@ -17,7 +17,6 @@
 
 target_sources(libdyno-obj
                PRIVATE
-
                AggregateDecl.cpp
                Array.cpp
                AstList.cpp

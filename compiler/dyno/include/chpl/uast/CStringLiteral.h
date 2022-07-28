@@ -42,6 +42,9 @@ class CStringLiteral final : public StringLikeLiteral {
   // and would need to be defined here if any fields are added.
 
  public:
+  CStringLiteral(CStringLiteral&&) = default;
+
+ public:
   ~CStringLiteral() override = default;
 
   static owned<CStringLiteral> build(Builder* builder, Location loc,

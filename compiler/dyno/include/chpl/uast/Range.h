@@ -40,6 +40,9 @@ namespace uast {
 
  */
 class Range final : public AstNode {
+  public:
+    Range(Range&&) = default;
+
  public:
   enum OpKind {
     DEFAULT,

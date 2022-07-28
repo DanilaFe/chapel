@@ -68,6 +68,9 @@ class TypeQuery final : public NamedDecl {
   }
 
  public:
+  TypeQuery(TypeQuery&&) = default;
+
+ public:
   ~TypeQuery() override = default;
 
   static owned<TypeQuery> build(Builder* builder, Location loc,

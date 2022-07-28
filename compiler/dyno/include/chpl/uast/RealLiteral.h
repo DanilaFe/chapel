@@ -41,6 +41,9 @@ class RealLiteral final : public NumericLiteral<double, types::RealParam> {
   // and would need to be defined here if any fields are added.
 
  public:
+  RealLiteral(RealLiteral&&) = default;
+
+ public:
   ~RealLiteral() override = default;
 
   static owned<RealLiteral> build(Builder* builder, Location loc,

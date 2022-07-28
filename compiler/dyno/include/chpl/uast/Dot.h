@@ -69,6 +69,9 @@ class Dot final : public AstNode {
   }
 
  public:
+  Dot(Dot&&) = default;
+
+ public:
   ~Dot() override = default;
   static owned<Dot> build(Builder* builder,
                           Location loc,

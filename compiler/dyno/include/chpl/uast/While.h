@@ -75,6 +75,9 @@ class While final : public Loop {
   int8_t conditionChildNum_;
 
  public:
+  While(While&&) = default;
+
+ public:
   ~While() override = default;
 
   /**
