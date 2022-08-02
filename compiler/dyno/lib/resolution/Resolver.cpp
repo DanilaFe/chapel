@@ -1341,6 +1341,13 @@ QualifiedType Resolver::typeForId(const ID& id, bool localGenericToUnknown) {
 
       assert(false && "could not find resolved field");
     }
+  } else if (asttags::isEnum(parentTag)) {
+    const auto& parentType = typeForModuleLevelSymbol(context, parentId);
+    assert(parentType.type() != nullptr);
+    auto enumType = parentType.type()->toEnumType();
+    assert(enumType != nullptr);
+    return QualifiedType(QualifiedType::PARAM, enumType,
+                         EnumParam::get(context, id));
   }
 
   // Otherwise it is a case not handled yet

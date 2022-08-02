@@ -85,9 +85,31 @@ static void test3() {
   assert(qt.type() && qt.type()->isErroneousType());
 }
 
+static void test4() {
+  Context ctx;
+  auto context = &ctx;
+  QualifiedType qt =  resolveTypeOfXInit(context,
+                         R""""(
+                         enum color {
+                           red, green, blue
+                         }
+
+                         use color;
+                         var x = red;
+                         )"""");
+  auto et = qt.type()->toEnumType();
+  auto ep = qt.param()->toEnumParam();
+  assert(et->id().contains(ep->value()));
+  auto enumAst = parsing::idToAst(context, et->id());
+  assert(enumAst && enumAst->isEnum());
+  auto elemAst = parsing::idToAst(context, ep->value());
+  assert(elemAst && elemAst->isEnumElement());
+}
+
 int main() {
   test1();
   test2();
   test3();
+  test4();
   return 0;
 }
