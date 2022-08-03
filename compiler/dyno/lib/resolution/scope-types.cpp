@@ -63,7 +63,7 @@ void Scope::addBuiltin(UniqueString name) {
   // Just refer to empty ID since builtin type declarations don't
   // actually exist in the AST.
   // The resolver knows that the empty ID means a builtin thing.
-  declared_.emplace(name, ID());
+  declared_.try_emplace(name, ID());
 }
 
 const Scope* Scope::moduleScope() const {

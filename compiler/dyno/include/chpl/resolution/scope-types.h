@@ -24,9 +24,32 @@
 #include "chpl/uast/AstNode.h"
 #include "chpl/util/memory.h"
 #include "chpl/util/iteration.h"
+#include "chpl/framework/global-strings.h"
+
+#include "llvm/ADT/DenseMap.h"
 
 #include <unordered_map>
 #include <utility>
+
+namespace llvm {
+  template<> struct DenseMapInfo<chpl::UniqueString> {
+    static bool isEqual(const chpl::UniqueString& lhs, const chpl::UniqueString& rhs) {
+      return lhs == rhs;
+    }
+
+    static size_t getHashValue(const chpl::UniqueString& id) {
+      return chpl::hash(id);
+    }
+
+    static const chpl::UniqueString getEmptyKey() {
+      return USTR("<empty>");
+    }
+
+    static const chpl::UniqueString getTombstoneKey() {
+      return USTR("<tombstone>");
+    }
+  };
+}
 
 namespace chpl {
 namespace resolution {
@@ -189,7 +212,7 @@ class BorrowedIdsWithName {
   Using an ID here prevents needing to recompute the Scope
   if (say) something in the body of a Function changed.
  */
-using DeclMap = std::unordered_map<UniqueString, OwnedIdsWithName>;
+using DeclMap = llvm::DenseMap<UniqueString, OwnedIdsWithName>;
 
 /**
   A scope roughly corresponds to a `{ }` block. Anywhere a new symbol could be

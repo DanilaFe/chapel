@@ -46,9 +46,8 @@ static void gather(DeclMap& declared, UniqueString name, const AstNode* d) {
   auto search = declared.find(name);
   if (search == declared.end()) {
     // add a new entry containing just the one ID
-    declared.emplace_hint(search,
-                          name,
-                          OwnedIdsWithName(d->id()));
+    declared.try_emplace(name,
+                         OwnedIdsWithName(d->id()));
   } else {
     // found an entry, so add to it
     OwnedIdsWithName& val = search->second;
