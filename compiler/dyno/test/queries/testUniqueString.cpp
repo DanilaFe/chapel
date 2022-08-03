@@ -21,6 +21,8 @@
 #include "chpl/framework/UniqueString.h"
 #include "chpl/framework/global-strings.h"
 
+#include "llvm/ADT/StringSet.h"
+
 // always check assertions in this test
 #ifdef NDEBUG
 #undef NDEBUG
@@ -35,9 +37,43 @@
 
 using namespace chpl;
 
+struct StringData {
+  int32_t length;
+  char gcMark;
+  char gcDoNotCollectMark;
+
+  StringData(int32_t length, char gcMark, char gcDoNotCollectMark)
+    : length(length), gcMark(gcMark), gcDoNotCollectMark(gcDoNotCollectMark) {}
+};
+
+struct UniqueStringBuilder {
+    static const char* name() { return "UniqueString"; }
+
+    const char* getUnique(Context* ctx, const std::string& str) {
+      return UniqueString::get(ctx, str).c_str();
+    }
+};
+
+struct StringSetBuilder {
+  static const char* name() { return "StringSet"; }
+
+  llvm::StringMap<StringData> map;
+
+  const char* getUnique(Context* ctx, const std::string& str) {
+    auto it = map.find(str);
+    if (it != map.end()) {
+      return it->first().data();
+    }
+    auto inserted = map.try_emplace(str, str.length(), 0, 0);
+    return inserted.first->first().data();
+  }
+};
+
+template <typename Builder=UniqueStringBuilder>
 static void testPerformance(Context* ctx,
                             const char* inputFile,
                             bool printTiming) {
+  Builder b;
   int outerRepeat = 10;
   int innerRepeat = 1;
 
@@ -66,7 +102,7 @@ static void testPerformance(Context* ctx,
               querybysize[len]++;
               nqueries++;
             }
-            UniqueString::get(ctx, word);
+            b.getUnique(ctx, word);
           }
         }
       }
@@ -82,7 +118,7 @@ static void testPerformance(Context* ctx,
   std::chrono::duration<double> elapsed = end - start;
 
   if (printTiming) {
-    std::cout << "unordered map elapsed time: " << elapsed.count() << " s\n";
+    std::cout << Builder::name() << " elapsed time: " << elapsed.count() << " s\n";
 
     if (dohisto) {
       std::cout << "Queried " << nqueries << " strings\n";
@@ -366,6 +402,7 @@ int main(int argc, char** argv) {
   Context* ctx = &context;
 
   // Next, measure performance
-  testPerformance(ctx, inputFile, printTiming);
+  testPerformance<StringSetBuilder>(ctx, inputFile, printTiming);
+  testPerformance<UniqueStringBuilder>(ctx, inputFile, printTiming);
   return 0;
 }
