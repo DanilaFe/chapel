@@ -25,10 +25,13 @@
 #include <unordered_map>
 
 #include "llvm/Support/ErrorOr.h"
+#include "subprocess.h"
 
 namespace chpl {
 
 using ChplEnvMap = std::unordered_map<std::string, std::string>;
+
+void parseChplEnv(std::string& output, ChplEnvMap& into);
 
 /**
   Run printchplenv and collect its output into a map.
@@ -44,9 +47,30 @@ using ChplEnvMap = std::unordered_map<std::string, std::string>;
     or a map containing key-value pairs for each variable in
     printchplenv's output.
  */
+template <typename InputMap>
 llvm::ErrorOr<ChplEnvMap>
-getChplEnv(const std::map<std::string, const char*>& varMap,
-           const char* chplHome);
+getChplEnv(const InputMap& varMap,
+           const char* chplHome) {
+  // Run printchplenv script, passing currently known CHPL_vars as well
+  std::string command;
+
+  // Pass known variables in varMap into printchplenv by prepending to command
+  for (auto& ii : varMap)
+    command += ii.first + "=" + ii.second + " ";
+
+  command += "CHPLENV_SKIP_HOST=true ";
+  command += "CHPLENV_SUPPRESS_WARNINGS=true ";
+  command += std::string(chplHome) + "/util/printchplenv --all --internal --no-tidy --simple";
+
+  auto commandOutput = getCommandOutput(command);
+  if (auto err = commandOutput.getError()) {
+    // forward error code
+    return err;
+  }
+  ChplEnvMap result;
+  parseChplEnv(commandOutput.get(), result);
+  return result;
+}
 
 } // namespace chpl
 

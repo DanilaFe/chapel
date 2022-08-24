@@ -23,7 +23,7 @@
 
 namespace chpl {
 
-static void parseChplEnv(std::string& output, ChplEnvMap& into) {
+void parseChplEnv(std::string& output, ChplEnvMap& into) {
   // Lines
   std::string line= "";
   std::string lineDelimiter = "\n";
@@ -52,30 +52,6 @@ static void parseChplEnv(std::string& output, ChplEnvMap& into) {
     into[key] = value;
     output.erase(0, linePos + lineDelimiter.length());
   }
-}
-
-llvm::ErrorOr<ChplEnvMap>
-getChplEnv(const std::map<std::string, const char*>& varMap,
-           const char* chplHome) {
-  // Run printchplenv script, passing currently known CHPL_vars as well
-  std::string command;
-
-  // Pass known variables in varMap into printchplenv by prepending to command
-  for (auto& ii : varMap)
-    command += ii.first + "=" + ii.second + " ";
-
-  command += "CHPLENV_SKIP_HOST=true ";
-  command += "CHPLENV_SUPPRESS_WARNINGS=true ";
-  command += std::string(chplHome) + "/util/printchplenv --all --internal --no-tidy --simple";
-
-  auto commandOutput = getCommandOutput(command);
-  if (auto err = commandOutput.getError()) {
-    // forward error code
-    return err;
-  }
-  ChplEnvMap result;
-  parseChplEnv(commandOutput.get(), result);
-  return result;
 }
 
 } // namespace chpl
