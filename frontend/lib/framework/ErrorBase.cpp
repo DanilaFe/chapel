@@ -147,6 +147,22 @@ ErrorMessage ErrorBase::toErrorMessage(Context* context) const {
   return message;
 }
 
+const owned<ErrorBase>& internErrorQuery(Context* context, ErrorBase* toIntern) {
+  QUERY_BEGIN(internErrorQuery, context, toIntern);
+  auto ret = owned<ErrorBase>(toIntern);
+  return QUERY_END(ret);
+}
+
+const ErrorBase* internError(Context* context, owned<ErrorBase> toIntern) {
+  auto rawPtr = toIntern.release();
+  auto& ownedPtr = internErrorQuery(context, rawPtr);
+  if (ownedPtr.get() != rawPtr) {
+    // Re-used existing error; throw away the newer copy.
+    delete rawPtr;
+  }
+  return ownedPtr.get();
+}
+
 void BasicError::write(ErrorWriterBase& wr) const {
   // if the ID is set, determine the location from that
   wr.heading(kind_, type_, idOrLoc_, message_);
@@ -165,35 +181,34 @@ void BasicError::mark(Context* context) const {
   }
 }
 
-const owned<GeneralError>&
-GeneralError::getGeneralErrorForID(Context* context, Kind kind, ID id, std::string message) {
-  QUERY_BEGIN(getGeneralErrorForID, context, kind, id, message);
-  auto result = owned<GeneralError>(new GeneralError(kind, id, std::move(message), {}));
-  return QUERY_END(result);
+size_t BasicError::hash() const {
+  size_t ret = 0;
+  ret = hash_combine(ret, chpl::hash(kind_));
+  ret = hash_combine(ret, chpl::hash(type_));
+  ret = hash_combine(ret, chpl::hash(idOrLoc_));
+  ret = hash_combine(ret, chpl::hash(message_));
+  for (auto note : notes_) {
+    ret = hash_combine(ret, chpl::hash(std::get<IdOrLocation>(note)));
+    ret = hash_combine(ret, chpl::hash(std::get<std::string>(note)));
+  }
+  return ret;
 }
 
-const owned<GeneralError>&
-GeneralError::getGeneralErrorForLocation(Context* context, Kind kind, Location loc, std::string message) {
-  QUERY_BEGIN(getGeneralErrorForLocation, context, kind, loc, message);
-  auto result = owned<GeneralError>(new GeneralError(kind, loc, std::move(message), {}));
-  return QUERY_END(result);
-}
-
-const GeneralError* GeneralError::vbuild(Context* context, Kind kind, ID id, const char* fmt, va_list vl) {
+const ErrorBase* GeneralError::vbuild(Context* context, Kind kind, ID id, const char* fmt, va_list vl) {
   auto message = vprintToString(fmt, vl);
-  return getGeneralErrorForID(context, kind, id, message).get();
+  return internError(context, owned<GeneralError>(new GeneralError(kind, id, std::move(message), {})));
 }
 
-const GeneralError* GeneralError::vbuild(Context* context, Kind kind, Location loc, const char* fmt, va_list vl) {
+const ErrorBase* GeneralError::vbuild(Context* context, Kind kind, Location loc, const char* fmt, va_list vl) {
   auto message = vprintToString(fmt, vl);
-  return getGeneralErrorForLocation(context, kind, loc, message).get();
+  return internError(context, owned<GeneralError>(new GeneralError(kind, loc, std::move(message), {})));
 }
 
-const GeneralError* GeneralError::get(Context* context, Kind kind, Location loc, std::string msg) {
-  return getGeneralErrorForLocation(context, kind, loc, std::move(msg)).get();
+const ErrorBase* GeneralError::get(Context* context, Kind kind, Location loc, std::string msg) {
+  return internError(context, owned<GeneralError>(new GeneralError(kind, loc, std::move(msg), {})));
 }
 
-const GeneralError* GeneralError::error(Context* context, Location loc, std::string msg) {
+const ErrorBase* GeneralError::error(Context* context, Location loc, std::string msg) {
   return GeneralError::get(context, ErrorBase::ERROR, std::move(loc), std::move(msg));
 }
 

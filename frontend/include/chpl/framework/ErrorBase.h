@@ -149,7 +149,10 @@ class ErrorBase {
    */
   virtual void write(ErrorWriterBase& wr) const = 0;
   virtual void mark(Context* context) const = 0;
+  virtual size_t hash() const = 0;
 };
+
+const ErrorBase* internError(Context* context, owned<ErrorBase> toIntern);
 
 /**
   An error without a specific type, and lacking (typed) additional information
@@ -179,6 +182,7 @@ class BasicError : public ErrorBase {
  public:
   void write(ErrorWriterBase& eq) const override;
   void mark(Context* context) const override;
+  size_t hash() const override;
 };
 
 /**
@@ -191,32 +195,26 @@ class GeneralError : public BasicError {
                std::string message, std::vector<Note> notes)
     : BasicError(kind, General, std::move(idOrLoc),
                  std::move(message), std::move(notes)) {}
-
-  static const owned<GeneralError>&
-  getGeneralErrorForID(Context* context, ErrorBase::Kind kind, ID id, std::string message);
-
-  static const owned<GeneralError>&
-  getGeneralErrorForLocation(Context* context, ErrorBase::Kind kind, Location loc, std::string message);
  public:
 
-  static const GeneralError* vbuild(Context* context,
-                                    ErrorBase::Kind kind, ID id,
-                                    const char* fmt,
-                                    va_list vl);
-  static const GeneralError* vbuild(Context* context,
-                                    ErrorBase::Kind kind, Location loc,
-                                    const char* fmt,
-                                    va_list vl);
+  static const ErrorBase* vbuild(Context* context,
+                                 ErrorBase::Kind kind, ID id,
+                                 const char* fmt,
+                                 va_list vl);
+  static const ErrorBase* vbuild(Context* context,
+                                 ErrorBase::Kind kind, Location loc,
+                                 const char* fmt,
+                                 va_list vl);
 
-  static const GeneralError* get(Context* context,
-                                 ErrorBase::Kind kind,
-                                 Location loc,
-                                 std::string msg);
+  static const ErrorBase* get(Context* context,
+                              ErrorBase::Kind kind,
+                              Location loc,
+                              std::string msg);
 
   /* Convenience overload to call ::get with the ERROR kind. */
-  static const GeneralError* error(Context* context,
-                                   Location loc,
-                                   std::string msg);
+  static const ErrorBase* error(Context* context,
+                                Location loc,
+                                std::string msg);
 };
 
 // The error-classes-list.h header will expand the DIAGNOSTIC_CLASS macro
@@ -242,12 +240,23 @@ class GeneralError : public BasicError {
     }\
    public:\
     ~Error##NAME__() = default;\
-    static const Error##NAME__* get(Context* context, ErrorInfo info);\
+    static const ErrorBase* get(Context* context, ErrorInfo info);\
 \
     void write(ErrorWriterBase& writer) const override;\
     void mark(Context* context) const override {\
       ::chpl::mark<ErrorInfo> marker;\
       marker(context, info);\
+    }\
+    size_t hash() const override {\
+      debuggerBreakHere();\
+      size_t ret = 0;\
+      ret = hash_combine(ret, chpl::hash(kind_));\
+      ret = hash_combine(ret, chpl::hash(type_));\
+      ret = hash_combine(ret, chpl::hash(info));\
+      std::cout << "Error: " << kind_ << ", " << type_ << ", ";\
+      chpl::stringify<ErrorInfo>{}(std::cout, StringifyKind::DEBUG_DETAIL, info);\
+      printf("\nError hash: %lu\n", ret);\
+      return ret;\
     }\
   };
 #include "chpl/framework/error-classes-list.h"
@@ -280,6 +289,16 @@ struct stringify<chpl::ErrorBase::Kind> {
   }
 };
 
+template <>
+struct stringify<ErrorBase*> {
+  void operator()(std::ostream& ss,
+                StringifyKind stringifyKind,
+                ErrorBase* error) {
+    // TODO incomplete implementation
+    ss << "Error(" << error->kind() << ", " << error->type() << ")";
+  }
+};
+
 } // end namespace chpl
 
 namespace std {
@@ -287,6 +306,21 @@ namespace std {
   struct hash<chpl::ErrorBase::Kind> {
     size_t operator()(const chpl::ErrorBase::Kind& key) {
       return key;
+    }
+  };
+
+  template <>
+  struct hash<chpl::ErrorBase> {
+    size_t operator()(const chpl::ErrorBase& error) {
+      return error.hash();
+    }
+  };
+
+  template <>
+  struct hash<chpl::ErrorBase*> {
+    size_t operator()(const chpl::ErrorBase* error) {
+      debuggerBreakHere();
+      return error->hash();
     }
   };
 } // end namespace std

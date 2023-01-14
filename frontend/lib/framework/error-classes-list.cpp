@@ -34,17 +34,9 @@ namespace chpl {
 // error type. We do this by defining the DIAGNOSTIC_CLASS macro, and including
 // error-classes-list.h which invokes this macro for every error type.
 #define DIAGNOSTIC_CLASS(NAME__, KIND__, EINFO__...)\
-  const owned<Error##NAME__>&\
-  Error##NAME__::getError##NAME__(Context* context,\
-                                  std::tuple<EINFO__> tuple) {\
-    QUERY_BEGIN(getError##NAME__, context, tuple);\
-    auto result = owned<Error##NAME__>(new Error##NAME__(tuple));\
-    return QUERY_END(result);\
-  }\
-\
-  const Error##NAME__*\
+  const ErrorBase*\
   Error##NAME__::get(Context* context, std::tuple<EINFO__> tuple) {\
-    return Error##NAME__::getError##NAME__(context, std::move(tuple)).get();\
+    return internError(context, owned<Error##NAME__>(new Error##NAME__(tuple)));\
   }
 #include "chpl/framework/error-classes-list.h"
 #undef DIAGNOSTIC_CLASS

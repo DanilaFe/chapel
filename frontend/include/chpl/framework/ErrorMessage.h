@@ -60,6 +60,13 @@ class IdOrLocation {
     id_.mark(context);
     location_.mark(context);
   }
+
+  size_t hash() const {
+    size_t ret = 0;
+    ret = hash_combine(ret, chpl::hash(id_));
+    ret = hash_combine(ret, chpl::hash(location_));
+    return ret;
+  }
 };
 
 /**
@@ -117,5 +124,16 @@ class ErrorMessage final : public IdOrLocation {
 };
 
 } // end namespace chpl
+
+namespace std {
+
+template <>
+struct hash<chpl::IdOrLocation> {
+  size_t operator()(const chpl::IdOrLocation& idOrLoc) {
+    return idOrLoc.hash();
+  }
+};
+
+} // end namespace std
 
 #endif
