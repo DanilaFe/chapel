@@ -1,0 +1,443 @@
+diff --git a/test/deprecated-keyword/handleEnum.good b/test/deprecated-keyword/handleEnum.good
+index e5fa4e7f11..83e7df7565 100644
+--- a/test/deprecated-keyword/handleEnum.good
++++ b/test/deprecated-keyword/handleEnum.good
+@@ -1,8 +1,8 @@
+ handleEnum.chpl:5: In function 'main':
+-handleEnum.chpl:12: warning: Enum e is deprecated, use enum f
+ handleEnum.chpl:6: warning: Enum e is deprecated, use enum f
+ handleEnum.chpl:7: warning: Enum e is deprecated, use enum f
+ handleEnum.chpl:8: warning: Enum e is deprecated, use enum f
++handleEnum.chpl:12: warning: Enum e is deprecated, use enum f
+ b
+ c
+ a
+diff --git a/test/deprecated-keyword/handleModule.good b/test/deprecated-keyword/handleModule.good
+index d60e489eeb..1d290cf43a 100644
+--- a/test/deprecated-keyword/handleModule.good
++++ b/test/deprecated-keyword/handleModule.good
+@@ -1,16 +1,16 @@
+ handleModule.chpl:15: In function 'main':
+ handleModule.chpl:17: warning: This module is deprecated, use Foob instead
+-handleModule.chpl:25: warning: This module is deprecated, use Foob instead
+-handleModule.chpl:31: warning: This module is deprecated, use Foob instead
+-handleModule.chpl:37: warning: This module is deprecated, use Foob instead
+-handleModule.chpl:43: warning: This module is deprecated, use Foob instead
+-handleModule.chpl:48: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:20: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:21: warning: This module is deprecated, use Foob instead
++handleModule.chpl:25: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:27: warning: This module is deprecated, use Foob instead
++handleModule.chpl:31: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:32: warning: This module is deprecated, use Foob instead
++handleModule.chpl:37: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:38: warning: This module is deprecated, use Foob instead
+ handleModule.chpl:39: warning: This module is deprecated, use Foob instead
++handleModule.chpl:43: warning: This module is deprecated, use Foob instead
++handleModule.chpl:48: warning: This module is deprecated, use Foob instead
+ 3
+ In Foob.bar()
+ 3
+diff --git a/test/deprecated/SysBasic/chapel_specific_errors.good b/test/deprecated/SysBasic/chapel_specific_errors.good
+index 6a60e6fb7c..91964a1c8a 100644
+--- a/test/deprecated/SysBasic/chapel_specific_errors.good
++++ b/test/deprecated/SysBasic/chapel_specific_errors.good
+@@ -1,7 +1,7 @@
++chapel_specific_errors.chpl:1: warning: The SysBasic module has been deprecated; most symbols have been moved to IO or OS as appropriate
+ chapel_specific_errors.chpl:1: warning: 'SysBasic.EEOF' has been deprecated
+ chapel_specific_errors.chpl:1: warning: 'SysBasic.ESHORT' has been deprecated
+ chapel_specific_errors.chpl:1: warning: 'SysBasic.EFORMAT' has been deprecated
+-chapel_specific_errors.chpl:1: warning: The SysBasic module has been deprecated; most symbols have been moved to IO or OS as appropriate
+ chapel_specific_errors.chpl:4: warning: 'SysBasic.EEOF' has been deprecated
+ chapel_specific_errors.chpl:5: warning: 'SysBasic.ESHORT' has been deprecated
+ chapel_specific_errors.chpl:6: warning: 'SysBasic.EFORMAT' has been deprecated
+diff --git a/test/deprecated/SysBasic/qio_err_t.good b/test/deprecated/SysBasic/qio_err_t.good
+index 210dd67f4d..6a309c65ed 100644
+--- a/test/deprecated/SysBasic/qio_err_t.good
++++ b/test/deprecated/SysBasic/qio_err_t.good
+@@ -1,2 +1,2 @@
+ qio_err_t.chpl:1: warning: The SysBasic module has been deprecated; most symbols have been moved to IO or OS as appropriate
+-qio_err_t.chpl:3: warning: 'qio_err_t' has been deprecated; please use a 'CTypes.c_int' instead.
++qio_err_t.chpl:3: warning: 'qio_err_t' has been deprecated; please use a 'CTypes.c_int' instead
+diff --git a/test/deprecated/subprocessPosixSignals.good b/test/deprecated/subprocessPosixSignals.good
+index c1031bd2a6..d07fc18a84 100644
+--- a/test/deprecated/subprocessPosixSignals.good
++++ b/test/deprecated/subprocessPosixSignals.good
+@@ -1,24 +1,24 @@
+-subprocessPosixSignals.chpl:5: warning: 'Subprocess.SIGABRT' is deprecated. Use 'OS.POSIX.SIGABRT' instead.
+-subprocessPosixSignals.chpl:6: warning: 'Subprocess.SIGALRM' is deprecated. Use 'OS.POSIX.SIGALRM' instead.
+-subprocessPosixSignals.chpl:7: warning: 'Subprocess.SIGBUS' is deprecated. Use 'OS.POSIX.SIGBUS' instead.
+-subprocessPosixSignals.chpl:8: warning: 'Subprocess.SIGCHLD' is deprecated. Use 'SOS.POSIX.SIGCHLD' instead.
+-subprocessPosixSignals.chpl:9: warning: 'Subprocess.SIGCONT' is deprecated. Use 'OS.POSIX.SIGCONT' instead.
+-subprocessPosixSignals.chpl:10: warning: 'Subprocess.SIGFPE' is deprecated. Use 'OS.POSIX.SIGFPE' instead.
+-subprocessPosixSignals.chpl:11: warning: 'Subprocess.SIGHUP' is deprecated. Use 'OS.POSIX.SIGHUP' instead.
+-subprocessPosixSignals.chpl:12: warning: 'Subprocess.SIGILL' is deprecated. Use 'OS.POSIX.SIGILL' instead.
+-subprocessPosixSignals.chpl:13: warning: 'Subprocess.SIGINT' is deprecated. Use 'OS.POSIX.SIGINT' instead.
+-subprocessPosixSignals.chpl:14: warning: 'Subprocess.SIGKILL' is deprecated. Use 'OS.POSIX.SIGKILL' instead.
+-subprocessPosixSignals.chpl:15: warning: 'Subprocess.SIGPIPE' is deprecated. Use 'OS.POSIX.SIGPIPE' instead.
+-subprocessPosixSignals.chpl:16: warning: 'Subprocess.SIGQUIT' is deprecated. Use 'OS.POSIX.SIGQUIT' instead.
+-subprocessPosixSignals.chpl:17: warning: 'Subprocess.SIGSEGV' is deprecated. Use 'OS.POSIX.SIGSEGV' instead.
+-subprocessPosixSignals.chpl:18: warning: 'Subprocess.SIGSTOP' is deprecated. Use 'OS.POSIX.SIGSTOP' instead.
+-subprocessPosixSignals.chpl:19: warning: 'Subprocess.SIGTERM' is deprecated. Use 'OS.POSIX.SIGTERM' instead.
+-subprocessPosixSignals.chpl:20: warning: 'Subprocess.SIGTRAP' is deprecated. Use 'OS.POSIX.SIGTRAP' instead.
+-subprocessPosixSignals.chpl:21: warning: 'Subprocess.SIGTSTP' is deprecated. Use 'OS.POSIX.SIGTSTP' instead.
+-subprocessPosixSignals.chpl:22: warning: 'Subprocess.SIGTTIN' is deprecated. Use 'OS.POSIX.SIGTTIN' instead.
+-subprocessPosixSignals.chpl:23: warning: 'Subprocess.SIGTTOU' is deprecated. Use 'OS.POSIX.SIGTTOU' instead.
+-subprocessPosixSignals.chpl:24: warning: 'Subprocess.SIGURG' is deprecated. Use 'OS.POSIX.SIGURG' instead.
+-subprocessPosixSignals.chpl:25: warning: 'Subprocess.SIGUSR1' is deprecated. Use 'OS.POSIX.SIGUSR1' instead.
+-subprocessPosixSignals.chpl:26: warning: 'Subprocess.SIGUSR2' is deprecated. Use 'OS.POSIX.SIGUSR2' instead.
+-subprocessPosixSignals.chpl:27: warning: 'Subprocess.SIGXCPU' is deprecated. Use 'OS.POSIX.SIGXCPU' instead.
+-subprocessPosixSignals.chpl:28: warning: 'Subprocess.SIGXFSZ' is deprecated. Use 'OS.POSIX.SIGXFSZ' instead.
++subprocessPosixSignals.chpl:5: warning: 'Subprocess.SIGABRT' is deprecated. Use 'OS.POSIX.SIGABRT' instead
++subprocessPosixSignals.chpl:6: warning: 'Subprocess.SIGALRM' is deprecated. Use 'OS.POSIX.SIGALRM' instead
++subprocessPosixSignals.chpl:7: warning: 'Subprocess.SIGBUS' is deprecated. Use 'OS.POSIX.SIGBUS' instead
++subprocessPosixSignals.chpl:8: warning: 'Subprocess.SIGCHLD' is deprecated. Use 'SOS.POSIX.SIGCHLD' instead
++subprocessPosixSignals.chpl:9: warning: 'Subprocess.SIGCONT' is deprecated. Use 'OS.POSIX.SIGCONT' instead
++subprocessPosixSignals.chpl:10: warning: 'Subprocess.SIGFPE' is deprecated. Use 'OS.POSIX.SIGFPE' instead
++subprocessPosixSignals.chpl:11: warning: 'Subprocess.SIGHUP' is deprecated. Use 'OS.POSIX.SIGHUP' instead
++subprocessPosixSignals.chpl:12: warning: 'Subprocess.SIGILL' is deprecated. Use 'OS.POSIX.SIGILL' instead
++subprocessPosixSignals.chpl:13: warning: 'Subprocess.SIGINT' is deprecated. Use 'OS.POSIX.SIGINT' instead
++subprocessPosixSignals.chpl:14: warning: 'Subprocess.SIGKILL' is deprecated. Use 'OS.POSIX.SIGKILL' instead
++subprocessPosixSignals.chpl:15: warning: 'Subprocess.SIGPIPE' is deprecated. Use 'OS.POSIX.SIGPIPE' instead
++subprocessPosixSignals.chpl:16: warning: 'Subprocess.SIGQUIT' is deprecated. Use 'OS.POSIX.SIGQUIT' instead
++subprocessPosixSignals.chpl:17: warning: 'Subprocess.SIGSEGV' is deprecated. Use 'OS.POSIX.SIGSEGV' instead
++subprocessPosixSignals.chpl:18: warning: 'Subprocess.SIGSTOP' is deprecated. Use 'OS.POSIX.SIGSTOP' instead
++subprocessPosixSignals.chpl:19: warning: 'Subprocess.SIGTERM' is deprecated. Use 'OS.POSIX.SIGTERM' instead
++subprocessPosixSignals.chpl:20: warning: 'Subprocess.SIGTRAP' is deprecated. Use 'OS.POSIX.SIGTRAP' instead
++subprocessPosixSignals.chpl:21: warning: 'Subprocess.SIGTSTP' is deprecated. Use 'OS.POSIX.SIGTSTP' instead
++subprocessPosixSignals.chpl:22: warning: 'Subprocess.SIGTTIN' is deprecated. Use 'OS.POSIX.SIGTTIN' instead
++subprocessPosixSignals.chpl:23: warning: 'Subprocess.SIGTTOU' is deprecated. Use 'OS.POSIX.SIGTTOU' instead
++subprocessPosixSignals.chpl:24: warning: 'Subprocess.SIGURG' is deprecated. Use 'OS.POSIX.SIGURG' instead
++subprocessPosixSignals.chpl:25: warning: 'Subprocess.SIGUSR1' is deprecated. Use 'OS.POSIX.SIGUSR1' instead
++subprocessPosixSignals.chpl:26: warning: 'Subprocess.SIGUSR2' is deprecated. Use 'OS.POSIX.SIGUSR2' instead
++subprocessPosixSignals.chpl:27: warning: 'Subprocess.SIGXCPU' is deprecated. Use 'OS.POSIX.SIGXCPU' instead
++subprocessPosixSignals.chpl:28: warning: 'Subprocess.SIGXFSZ' is deprecated. Use 'OS.POSIX.SIGXFSZ' instead
+diff --git a/test/library/standard/IO/useFormattedIO.good b/test/library/standard/IO/useFormattedIO.good
+index 3ef3c63b1b..346d8de7db 100644
+--- a/test/library/standard/IO/useFormattedIO.good
++++ b/test/library/standard/IO/useFormattedIO.good
+@@ -1 +1 @@
+-useFormattedIO.chpl:1: error: Cannot find module or enum 'FormattedIO'
++useFormattedIO.chpl:1: error: cannot find module or 'enum' 'FormattedIO' for 'use' statement
+diff --git a/test/library/standard/Version/compareVersionTypes.good b/test/library/standard/Version/compareVersionTypes.good
+index e720cef40a..2b6620adbb 100644
+--- a/test/library/standard/Version/compareVersionTypes.good
++++ b/test/library/standard/Version/compareVersionTypes.good
+@@ -1,4 +1,4 @@
+-compareVersionTypes.chpl:21: warning: sourceVersion is deprecated, please use versionValue instead.
++compareVersionTypes.chpl:21: warning: sourceVersion is deprecated, please use versionValue instead
+ Comparing versions:
+ 3.1.1
+ 3.1.1
+diff --git a/test/modules/deitz/test_module_class_conflict2.good b/test/modules/deitz/test_module_class_conflict2.good
+index 87d5a739c3..b73144c077 100644
+--- a/test/modules/deitz/test_module_class_conflict2.good
++++ b/test/modules/deitz/test_module_class_conflict2.good
+@@ -1 +1,2 @@
+-test_module_class_conflict2.chpl:13: error: 'use' of non-module/enum symbol MC
++test_module_class_conflict2.chpl:11: In module 'M1':
++test_module_class_conflict2.chpl:13: error: cannot 'use' 'MC', which is not a module or 'enum'
+diff --git a/test/modules/deitz/test_module_use4.good b/test/modules/deitz/test_module_use4.good
+index d7c5694294..952184f15d 100644
+--- a/test/modules/deitz/test_module_use4.good
++++ b/test/modules/deitz/test_module_use4.good
+@@ -1 +1,2 @@
+-test_module_use4.chpl:12: error: 'use' of non-module/enum symbol M1
++test_module_use4.chpl:10: In module 'M3':
++test_module_use4.chpl:12: error: cannot 'use' 'M1', which is not a module or 'enum'
+diff --git a/test/modules/diten/usemodule/test_nested_use2.good b/test/modules/diten/usemodule/test_nested_use2.good
+index 8e27dd866c..7ce034e4d8 100644
+--- a/test/modules/diten/usemodule/test_nested_use2.good
++++ b/test/modules/diten/usemodule/test_nested_use2.good
+@@ -1,2 +1,2 @@
+ test_nested_use2.chpl:12: In function 'main':
+-test_nested_use2.chpl:13: error: Cannot find symbol 'notinnermost' in module 'middlemost'
++test_nested_use2.chpl:13: error: cannot find module or 'enum' 'notinnermost' for 'use' statement
+diff --git a/test/modules/diten/usemodule/test_nested_use3.good b/test/modules/diten/usemodule/test_nested_use3.good
+index 7f0972be3d..0f7bac9fb5 100644
+--- a/test/modules/diten/usemodule/test_nested_use3.good
++++ b/test/modules/diten/usemodule/test_nested_use3.good
+@@ -1,2 +1,2 @@
+ test_nested_use3.chpl:12: In function 'main':
+-test_nested_use3.chpl:13: error: Cannot find symbol 'notmiddlemost' in module 'outermost'
++test_nested_use3.chpl:13: error: cannot find module or 'enum' 'notmiddlemost' for 'use' statement
+diff --git a/test/modules/diten/usemodule/test_nested_use4.good b/test/modules/diten/usemodule/test_nested_use4.good
+index f487288984..ce5ffce9fe 100644
+--- a/test/modules/diten/usemodule/test_nested_use4.good
++++ b/test/modules/diten/usemodule/test_nested_use4.good
+@@ -1,2 +1,2 @@
+ test_nested_use4.chpl:12: In function 'main':
+-test_nested_use4.chpl:13: error: Cannot find module or enum 'notoutermost'
++test_nested_use4.chpl:13: error: cannot find module or 'enum' 'notoutermost' for 'use' statement
+diff --git a/test/modules/errors/assign-param-from-module.good b/test/modules/errors/assign-param-from-module.good
+index 7e88857f67..143522b963 100644
+--- a/test/modules/errors/assign-param-from-module.good
++++ b/test/modules/errors/assign-param-from-module.good
+@@ -1 +1,2 @@
++assign-param-from-module.chpl:1: In module 'Program':
+ assign-param-from-module.chpl:4: error: modules (like 'M' here) cannot be mentioned like variables
+diff --git a/test/modules/errors/assign-var-from-imported-module.good b/test/modules/errors/assign-var-from-imported-module.good
+index e5dd644c5b..4a412d8f80 100644
+--- a/test/modules/errors/assign-var-from-imported-module.good
++++ b/test/modules/errors/assign-var-from-imported-module.good
+@@ -1 +1,2 @@
++assign-var-from-imported-module.chpl:1: In module 'Program':
+ assign-var-from-imported-module.chpl:4: error: modules (like 'M' here) cannot be mentioned like variables
+diff --git a/test/modules/errors/assign-var-from-module.good b/test/modules/errors/assign-var-from-module.good
+index 7a2ef014e6..c3826c5cf0 100644
+--- a/test/modules/errors/assign-var-from-module.good
++++ b/test/modules/errors/assign-var-from-module.good
+@@ -1 +1,2 @@
++assign-var-from-module.chpl:1: In module 'Program':
+ assign-var-from-module.chpl:4: error: modules (like 'M' here) cannot be mentioned like variables
+diff --git a/test/modules/errors/call-imported-module.good b/test/modules/errors/call-imported-module.good
+index d39f749cf7..f72c3080b3 100644
+--- a/test/modules/errors/call-imported-module.good
++++ b/test/modules/errors/call-imported-module.good
+@@ -1 +1,2 @@
++call-imported-module.chpl:1: In module 'Program':
+ call-imported-module.chpl:4: error: modules (like 'M' here) cannot be called like procedures
+diff --git a/test/modules/errors/call-module.good b/test/modules/errors/call-module.good
+index 3c900f81dc..db2caca34a 100644
+--- a/test/modules/errors/call-module.good
++++ b/test/modules/errors/call-module.good
+@@ -1 +1,2 @@
++call-module.chpl:1: In module 'Program':
+ call-module.chpl:3: error: modules (like 'M' here) cannot be called like procedures
+diff --git a/test/modules/errors/callModLikeProc2.good b/test/modules/errors/callModLikeProc2.good
+index 9506ea232e..b6a4ab5c41 100644
+--- a/test/modules/errors/callModLikeProc2.good
++++ b/test/modules/errors/callModLikeProc2.good
+@@ -1,2 +1,2 @@
+ callModLikeProc2.chpl:7: In function 'main':
+-callModLikeProc2.chpl:9: error: modules (like 'B' here) cannot be called like procedures
++callModLikeProc2.chpl:9: error: modules (like 'B' here) cannot be mentioned like variables
+diff --git a/test/modules/errors/issue-14537.good b/test/modules/errors/issue-14537.good
+index 1dced28d39..503d85db1d 100644
+--- a/test/modules/errors/issue-14537.good
++++ b/test/modules/errors/issue-14537.good
+@@ -1 +1,2 @@
++issue-14537.chpl:10: In module 'fibs':
+ issue-14537.chpl:12: error: modules (like 'bar' here) cannot be called like procedures
+diff --git a/test/modules/errors/useMissingModule.good b/test/modules/errors/useMissingModule.good
+index 01bb7dd1ab..a63e3bbe36 100644
+--- a/test/modules/errors/useMissingModule.good
++++ b/test/modules/errors/useMissingModule.good
+@@ -1 +1 @@
+-useMissingModule.chpl:1: error: Cannot find module or enum 'GooberPeas'
++useMissingModule.chpl:1: error: cannot find module or 'enum' 'GooberPeas' for 'use' statement
+diff --git a/test/modules/errors/useMissingModule2.good b/test/modules/errors/useMissingModule2.good
+index 39419d0029..6724de7169 100644
+--- a/test/modules/errors/useMissingModule2.good
++++ b/test/modules/errors/useMissingModule2.good
+@@ -1 +1 @@
+-useMissingModule2.chpl:1: error: Cannot find module or enum 'Goober'
++useMissingModule2.chpl:1: error: cannot find module or 'enum' 'Goober' for 'use' statement
+diff --git a/test/modules/vass/use-a-Math-function.good b/test/modules/vass/use-a-Math-function.good
+index b644d522bd..5122292783 100644
+--- a/test/modules/vass/use-a-Math-function.good
++++ b/test/modules/vass/use-a-Math-function.good
+@@ -1 +1 @@
+-use-a-Math-function.chpl:6: error: Cannot find module or enum 'fabs'
++use-a-Math-function.chpl:6: error: cannot find module or 'enum' 'fabs' for 'use' statement
+diff --git a/test/modules/vass/use-a-Reflection-function.good b/test/modules/vass/use-a-Reflection-function.good
+index 544ce62657..a163b3df5c 100644
+--- a/test/modules/vass/use-a-Reflection-function.good
++++ b/test/modules/vass/use-a-Reflection-function.good
+@@ -1 +1 @@
+-use-a-Reflection-function.chpl:6: error: Cannot find module or enum 'numFields'
++use-a-Reflection-function.chpl:6: error: cannot find module or 'enum' 'numFields' for 'use' statement
+diff --git a/test/trivial/bradc/redefinevar.good b/test/trivial/bradc/redefinevar.good
+index 12a29c4e4d..12bcf9092a 100644
+--- a/test/trivial/bradc/redefinevar.good
++++ b/test/trivial/bradc/redefinevar.good
+@@ -1,2 +1,2 @@
+-redefinevar.chpl:1: error: 'x' has multiple definitions, redefined at:
+-  redefinevar.chpl:2
++redefinevar.chpl:1: error: 'x' has multiple definitions
++redefinevar.chpl:2: note: redefined here
+diff --git a/test/visibility/import/deeperNesting-parentImportBad.good b/test/visibility/import/deeperNesting-parentImportBad.good
+index f6efe3959c..3af02ccd91 100644
+--- a/test/visibility/import/deeperNesting-parentImportBad.good
++++ b/test/visibility/import/deeperNesting-parentImportBad.good
+@@ -1,5 +1,5 @@
+-deeperNesting-parentImportBad.chpl:10: error: Cannot import module 'B'
++deeperNesting-parentImportBad.chpl:9: In module 'C':
++deeperNesting-parentImportBad.chpl:10: error: cannot find module 'B' for 'import' statement
+ deeperNesting-parentImportBad.chpl:2: note: a module named 'B' is defined here
+-deeperNesting-parentImportBad.chpl:10: note: full path or explicit relative import required
+-deeperNesting-parentImportBad.chpl:10: note: please specify the full path to the module
+-deeperNesting-parentImportBad.chpl:10: note: or use a relative import e.g. 'import this.M' or 'import super.M'
++deeperNesting-parentImportBad.chpl:2: note: however, a full path or an explicit relative import is required for modules that are not at the root level
++deeperNesting-parentImportBad.chpl:10: note: For non-root-level modules, please specify the full path to the module or use a relative import e.g. 'import this.M' or 'import super.M'
+diff --git a/test/visibility/import/deeperNesting2.good b/test/visibility/import/deeperNesting2.good
+index b6f6ef3d95..3ae6079857 100644
+--- a/test/visibility/import/deeperNesting2.good
++++ b/test/visibility/import/deeperNesting2.good
+@@ -1,5 +1,5 @@
+-deeperNesting2.chpl:12: error: Cannot import module 'B'
++deeperNesting2.chpl:1: In module 'A':
++deeperNesting2.chpl:12: error: cannot find module 'B' for 'import' statement
+ deeperNesting2.chpl:2: note: a module named 'B' is defined here
+-deeperNesting2.chpl:12: note: full path or explicit relative import required
+-deeperNesting2.chpl:12: note: please specify the full path to the module
+-deeperNesting2.chpl:12: note: or use a relative import e.g. 'import this.M' or 'import super.M'
++deeperNesting2.chpl:2: note: however, a full path or an explicit relative import is required for modules that are not at the root level
++deeperNesting2.chpl:12: note: For non-root-level modules, please specify the full path to the module or use a relative import e.g. 'import this.M' or 'import super.M'
+diff --git a/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good b/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
+index 3c5e18e31b..dce035c517 100644
+--- a/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
++++ b/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
+@@ -1 +1,2 @@
+-badName.chpl:5: error: Bad identifier, no known 'baz' defined in 'Foo'
++badName.chpl:4: In module 'User':
++badName.chpl:5: error: cannot rename symbol 'baz' as it is not defined in 'Foo'
+diff --git a/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good b/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good
+index d7a0576b02..5421d3dd18 100644
+--- a/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good
++++ b/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good
+@@ -1 +1,2 @@
+-last-before-list-not-mod.chpl:7: error: Last symbol prior to `{` in import must be a module, symbol 'B' is not
++last-before-list-not-mod.chpl:6: In module 'User':
++last-before-list-not-mod.chpl:7: error: cannot 'import' 'B', which is not a module
+diff --git a/test/visibility/import/no-param-import.good b/test/visibility/import/no-param-import.good
+index 6839caf59f..9d304ed027 100644
+--- a/test/visibility/import/no-param-import.good
++++ b/test/visibility/import/no-param-import.good
+@@ -1 +1,4 @@
+-no-param-import.chpl:4: error: import must name a module ('p' is not a module)
++no-param-import.chpl:1: In module 'Foo':
++no-param-import.chpl:4: error: cannot find module 'p' for 'import' statement
++no-param-import.chpl:2: note: a declaration of 'p' is here
++no-param-import.chpl:2: note: however, 'import' statements can only be used with modules (and this 'p' is not a module)
+diff --git a/test/visibility/import/public/no-junk-import.good b/test/visibility/import/public/no-junk-import.good
+index b92da5372f..e372c5c0c5 100644
+--- a/test/visibility/import/public/no-junk-import.good
++++ b/test/visibility/import/public/no-junk-import.good
+@@ -1 +1 @@
+-no-junk-import.chpl:1: error: Cannot find symbol 'junk'
++no-junk-import.chpl:1: error: cannot find module 'junk' for 'import' statement
+diff --git a/test/visibility/import/public/no-param-import.good b/test/visibility/import/public/no-param-import.good
+index 6839caf59f..9d304ed027 100644
+--- a/test/visibility/import/public/no-param-import.good
++++ b/test/visibility/import/public/no-param-import.good
+@@ -1 +1,4 @@
+-no-param-import.chpl:4: error: import must name a module ('p' is not a module)
++no-param-import.chpl:1: In module 'Foo':
++no-param-import.chpl:4: error: cannot find module 'p' for 'import' statement
++no-param-import.chpl:2: note: a declaration of 'p' is here
++no-param-import.chpl:2: note: however, 'import' statements can only be used with modules (and this 'p' is not a module)
+diff --git a/test/visibility/import/relative/import-relative-error7.good b/test/visibility/import/relative/import-relative-error7.good
+index 84f92a843e..047cf5a8bd 100644
+--- a/test/visibility/import/relative/import-relative-error7.good
++++ b/test/visibility/import/relative/import-relative-error7.good
+@@ -1 +1,3 @@
+-import-relative-error7.chpl:2: error: cannot use/import super from a toplevel module
++import-relative-error7.chpl:1: In module 'M':
++import-relative-error7.chpl:2: error: invalid use of 'super' in 'import'; 'M' is a top-level module
++import-relative-error7.chpl:1: note: module 'M' was declared at the top level here
+diff --git a/test/visibility/import/relative/import-relative-error8.good b/test/visibility/import/relative/import-relative-error8.good
+index 503aa8c577..24f15d17e3 100644
+--- a/test/visibility/import/relative/import-relative-error8.good
++++ b/test/visibility/import/relative/import-relative-error8.good
+@@ -1 +1,3 @@
+-import-relative-error8.chpl:2: error: cannot use/import super from a toplevel module
++import-relative-error8.chpl:1: In module 'M':
++import-relative-error8.chpl:2: error: invalid use of 'super' in 'import'; 'M' is a top-level module
++import-relative-error8.chpl:1: note: module 'M' was declared at the top level here
+diff --git a/test/visibility/import/rename/last-before-list-not-mod.good b/test/visibility/import/rename/last-before-list-not-mod.good
+index d7a0576b02..5421d3dd18 100644
+--- a/test/visibility/import/rename/last-before-list-not-mod.good
++++ b/test/visibility/import/rename/last-before-list-not-mod.good
+@@ -1 +1,2 @@
+-last-before-list-not-mod.chpl:7: error: Last symbol prior to `{` in import must be a module, symbol 'B' is not
++last-before-list-not-mod.chpl:6: In module 'User':
++last-before-list-not-mod.chpl:7: error: cannot 'import' 'B', which is not a module
+diff --git a/test/visibility/import/rename/noSuchOldName.good b/test/visibility/import/rename/noSuchOldName.good
+index 4270dd037b..396bbe12a0 100644
+--- a/test/visibility/import/rename/noSuchOldName.good
++++ b/test/visibility/import/rename/noSuchOldName.good
+@@ -1 +1,2 @@
+-noSuchOldName.chpl:5: error: Bad identifier in rename, no known 'baz' in 'M'
++noSuchOldName.chpl:4: In module 'User':
++noSuchOldName.chpl:5: error: cannot rename symbol 'baz' as it is not defined in 'M'
+diff --git a/test/visibility/import/withUse/useImportSubmodule-noOuterNameForImport.good b/test/visibility/import/withUse/useImportSubmodule-noOuterNameForImport.good
+index fb74b8012a..c658aeac8b 100644
+--- a/test/visibility/import/withUse/useImportSubmodule-noOuterNameForImport.good
++++ b/test/visibility/import/withUse/useImportSubmodule-noOuterNameForImport.good
+@@ -1,5 +1,5 @@
+-useImportSubmodule-noOuterNameForImport.chpl:3: error: Cannot import module 'N'
++useImportSubmodule-noOuterNameForImport.chpl:1: In module 'M':
++useImportSubmodule-noOuterNameForImport.chpl:3: error: cannot find module 'N' for 'import' statement
+ useImportSubmodule-noOuterNameForImport.chpl:5: note: a module named 'N' is defined here
+-useImportSubmodule-noOuterNameForImport.chpl:3: note: full path or explicit relative import required
+-useImportSubmodule-noOuterNameForImport.chpl:3: note: please specify the full path to the module
+-useImportSubmodule-noOuterNameForImport.chpl:3: note: or use a relative import e.g. 'import this.M' or 'import super.M'
++useImportSubmodule-noOuterNameForImport.chpl:5: note: however, a full path or an explicit relative import is required for modules that are not at the root level
++useImportSubmodule-noOuterNameForImport.chpl:3: note: For non-root-level modules, please specify the full path to the module or use a relative import e.g. 'import this.M' or 'import super.M'
+diff --git a/test/visibility/only/badName.good b/test/visibility/only/badName.good
+index ad9c0f9a33..769a42ff5c 100644
+--- a/test/visibility/only/badName.good
++++ b/test/visibility/only/badName.good
+@@ -1 +1,2 @@
+-badName.chpl:13: error: Bad identifier in 'only' clause, no known 'd' defined in 'Foo'
++badName.chpl:12: In module 'M':
++badName.chpl:13: error: cannot rename symbol 'd' as it is not defined in 'Foo'
+diff --git a/test/visibility/relative-use/relative-use-error1.good b/test/visibility/relative-use/relative-use-error1.good
+index d753cf5e31..938c8002d1 100644
+--- a/test/visibility/relative-use/relative-use-error1.good
++++ b/test/visibility/relative-use/relative-use-error1.good
+@@ -1,2 +1,2 @@
+ relative-use-error1.chpl:12: In function 'main':
+-relative-use-error1.chpl:14: error: Cannot find module or enum 'SubSubModule'
++relative-use-error1.chpl:14: error: cannot find module or 'enum' 'SubSubModule' for 'use' statement
+diff --git a/test/visibility/relative-use/relative-use-error2.good b/test/visibility/relative-use/relative-use-error2.good
+index 4fd88ad667..f666f7dcc0 100644
+--- a/test/visibility/relative-use/relative-use-error2.good
++++ b/test/visibility/relative-use/relative-use-error2.good
+@@ -1,2 +1,2 @@
+ relative-use-error2.chpl:8: In function 'foo':
+-relative-use-error2.chpl:9: error: Cannot find module or enum 'DoesNotExistModule'
++relative-use-error2.chpl:9: error: cannot find module or 'enum' 'DoesNotExistModule' for 'use' statement
+diff --git a/test/visibility/relative-use/use-relative-error1.good b/test/visibility/relative-use/use-relative-error1.good
+index 87f19258d1..972fd85907 100644
+--- a/test/visibility/relative-use/use-relative-error1.good
++++ b/test/visibility/relative-use/use-relative-error1.good
+@@ -1 +1,2 @@
+-use-relative-error1.chpl:5: error: use must name a module or enum ('x' is neither)
++use-relative-error1.chpl:1: In module 'M':
++use-relative-error1.chpl:5: error: cannot 'use' 'x', which is not a module or 'enum'
+diff --git a/test/visibility/relative-use/use-relative-error7.good b/test/visibility/relative-use/use-relative-error7.good
+index 597ff99595..8f1bbf81a2 100644
+--- a/test/visibility/relative-use/use-relative-error7.good
++++ b/test/visibility/relative-use/use-relative-error7.good
+@@ -1 +1,3 @@
+-use-relative-error7.chpl:2: error: cannot use/import super from a toplevel module
++use-relative-error7.chpl:1: In module 'M':
++use-relative-error7.chpl:2: error: invalid use of 'super' in 'use'; 'M' is a top-level module
++use-relative-error7.chpl:1: note: module 'M' was declared at the top level here
+diff --git a/test/visibility/relative-use/use-relative-error8.good b/test/visibility/relative-use/use-relative-error8.good
+index 7781883588..6fcf55daa8 100644
+--- a/test/visibility/relative-use/use-relative-error8.good
++++ b/test/visibility/relative-use/use-relative-error8.good
+@@ -1 +1,3 @@
+-use-relative-error8.chpl:2: error: cannot use/import super from a toplevel module
++use-relative-error8.chpl:1: In module 'M':
++use-relative-error8.chpl:2: error: invalid use of 'super' in 'use'; 'M' is a top-level module
++use-relative-error8.chpl:1: note: module 'M' was declared at the top level here
+diff --git a/test/visibility/rename/badOldName.good b/test/visibility/rename/badOldName.good
+index 946c66a1e9..57a8c6f3f0 100644
+--- a/test/visibility/rename/badOldName.good
++++ b/test/visibility/rename/badOldName.good
+@@ -1 +1,2 @@
+-badOldName.chpl:8: error: Bad identifier in rename, no known 'br' in 'Foo'
++badOldName.chpl:7: In module 'M':
++badOldName.chpl:8: error: cannot rename symbol 'br' as it is not defined in 'Foo'
+diff --git a/test/visibility/rename/innerExcept.good b/test/visibility/rename/innerExcept.good
+index 55d1694594..b1cb16e58e 100644
+--- a/test/visibility/rename/innerExcept.good
++++ b/test/visibility/rename/innerExcept.good
+@@ -1 +1,2 @@
+-innerExcept.chpl:14: error: Bad identifier in rename, no known 'bar' in 'A'
++innerExcept.chpl:13: In module 'M':
++innerExcept.chpl:14: error: cannot rename symbol 'bar' as it is not defined in 'A'
