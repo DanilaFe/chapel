@@ -285,13 +285,13 @@ index b6f6ef3d95..3ae6079857 100644
 +deeperNesting2.chpl:2: note: however, a full path or an explicit relative import is required for modules that are not at the root level
 +deeperNesting2.chpl:12: note: For non-root-level modules, please specify the full path to the module or use a relative import e.g. 'import this.M' or 'import super.M'
 diff --git a/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good b/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
-index 3c5e18e31b..dce035c517 100644
+index 3c5e18e31b..df313975b1 100644
 --- a/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
 +++ b/test/visibility/import/enablesUnqualified/multipleUnqualified/badName.good
 @@ -1 +1,2 @@
 -badName.chpl:5: error: Bad identifier, no known 'baz' defined in 'Foo'
 +badName.chpl:4: In module 'User':
-+badName.chpl:5: error: cannot rename symbol 'baz' as it is not defined in 'Foo'
++badName.chpl:5: error: cannot 'import' symbol 'baz' as it is not defined in 'Foo'
 diff --git a/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good b/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good
 index d7a0576b02..5421d3dd18 100644
 --- a/test/visibility/import/enablesUnqualified/multipleUnqualified/last-before-list-not-mod.good
@@ -376,13 +376,13 @@ index fb74b8012a..c658aeac8b 100644
 +useImportSubmodule-noOuterNameForImport.chpl:5: note: however, a full path or an explicit relative import is required for modules that are not at the root level
 +useImportSubmodule-noOuterNameForImport.chpl:3: note: For non-root-level modules, please specify the full path to the module or use a relative import e.g. 'import this.M' or 'import super.M'
 diff --git a/test/visibility/only/badName.good b/test/visibility/only/badName.good
-index ad9c0f9a33..769a42ff5c 100644
+index ad9c0f9a33..0d82df6d02 100644
 --- a/test/visibility/only/badName.good
 +++ b/test/visibility/only/badName.good
 @@ -1 +1,2 @@
 -badName.chpl:13: error: Bad identifier in 'only' clause, no known 'd' defined in 'Foo'
 +badName.chpl:12: In module 'M':
-+badName.chpl:13: error: cannot rename symbol 'd' as it is not defined in 'Foo'
++badName.chpl:13: error: cannot use 'only' clause with symbol 'd' as it is not defined in 'Foo'
 diff --git a/test/visibility/relative-use/relative-use-error1.good b/test/visibility/relative-use/relative-use-error1.good
 index d753cf5e31..938c8002d1 100644
 --- a/test/visibility/relative-use/relative-use-error1.good
