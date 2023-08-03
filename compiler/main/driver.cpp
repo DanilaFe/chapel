@@ -1699,8 +1699,8 @@ static void populateGpuArches(const char* from) {
   buffer[gpuArchNameLen] = '\0';
 
   std::vector<std::string> into;
-  splitString(std::string(from), into, ",");
-  for (auto& str : into ){
+  splitString(std::string(buffer), into, ",");
+  for (auto& str : into){
     gpuArches.insert(str);
   }
 }
@@ -1738,7 +1738,7 @@ static void setGPUFlags() {
                   "for more information");
       }
       else {
-        populateGpuArches(fGpuArch);
+        populateGpuArches(CHPL_GPU_ARCH);
       }
     }
   }
