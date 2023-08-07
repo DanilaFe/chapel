@@ -178,6 +178,10 @@ struct ClangInfo {
   // and these arguments don't apply when compiling C files named
   // on the command line
   std::vector<std::string> clangOtherArgs;
+  // We re-use mostly the same flags with the exception of offloadArch, which
+  // we need to change for each target GPU architecture. Keep this in
+  // a separate variable for easy changing.
+  std::string offloadArch;
 
   // arguments to the linker from CC/CXX variable overrides
   std::vector<std::string> clangLDArgs;
@@ -1365,7 +1369,6 @@ class CCodeGenConsumer final : public ASTConsumer {
 
     // Start ASTVisitor Overrides
     void Initialize(ASTContext &Context) override {
-
       setupClangContext(info, &Context);
 
       if (parseOnly) return;
@@ -1621,11 +1624,15 @@ void setupClang(GenInfo* info, std::string mainFile)
 
   clangInfo->clangexe = clangInfo->clangCC;
   clangInfo->driverArgs.clear();
+  clangInfo->driverArgsCStrings.clear();
 
   clangInfo->driverArgs.push_back("<chapel clang driver invocation>");
 
   for( size_t i = 0; i < clangInfo->clangCCArgs.size(); ++i ) {
     clangInfo->driverArgs.push_back(clangInfo->clangCCArgs[i]);
+  }
+  if (!clangInfo->offloadArch.empty()) {
+    clangInfo->driverArgs.push_back(std::string("--offload-arch=") + clangInfo->offloadArch);
   }
   for( size_t i = 0; i < clangInfo->clangOtherArgs.size(); ++i ) {
     clangInfo->driverArgs.push_back(clangInfo->clangOtherArgs[i]);
@@ -4505,6 +4512,7 @@ static void stripPtxDebugDirective(const std::string& artifactFilename) {
 }
 
 static void makeBinaryLLVMForCUDA(const std::string& artifactFilename,
+                                  const std::string& artifactExtension,
                                   const std::string& gpuObjectFilename,
                                   const std::string& fatbinFilename) {
   if (myshell("which ptxas > /dev/null 2>&1", "Check to see if ptxas command can be found", true)) {
@@ -4525,16 +4533,6 @@ static void makeBinaryLLVMForCUDA(const std::string& artifactFilename,
 
     ptxasFlags = fFastFlag ? "-O3" : "-O0";
     if (debugCCode) ptxasFlags += " -lineinfo";
-
-    // Kind of a hack; manually turn
-    //   .target sm_60, debug
-    // into
-    //   .target sm_60
-    // because we can't configure clang to not force
-    // full debug info.
-    if (debugCCode && fFastFlag) {
-      stripPtxDebugDirective(artifactFilename);
-    }
   }
 
   // avoid warning about not statically knowing the stack size when recursive
@@ -4544,6 +4542,20 @@ static void makeBinaryLLVMForCUDA(const std::string& artifactFilename,
   // Run ptxas for each architecture
   std::string profiles;
   for (auto& gpuArch : gpuArches) {
+    auto fullFilename = artifactFilename + "_" + gpuArch + artifactExtension;
+
+    if (fGpuPtxasEnforceOpt) {
+      // Kind of a hack; manually turn
+      //   .target sm_60, debug
+      // into
+      //   .target sm_60
+      // because we can't configure clang to not force
+      // full debug info.
+      if (debugCCode && fFastFlag) {
+        stripPtxDebugDirective(fullFilename);
+      }
+    }
+
     // Figure out the corresponding compute capability and object name
     if (strncmp(gpuArch.c_str(), "sm_", 3) != 0 || gpuArch.size() != 5) {
       USR_FATAL("Unrecognized CUDA arch");
@@ -4556,12 +4568,12 @@ static void makeBinaryLLVMForCUDA(const std::string& artifactFilename,
                          " " + ptxasFlags + " " +
                          std::string(" --output-file ") +
                          gpuObject.c_str() +
-                         " " + artifactFilename.c_str();
+                         " " + fullFilename;
     mysystem(ptxCmd.c_str(), "PTX to object file");
 
     // Track the new object we created and the CC we enabled.
     profiles += std::string(" --image=profile=") + computeCap +
-                ",file=" + artifactFilename;
+                ",file=" + fullFilename;
     profiles += std::string(" --image=profile=") + gpuArch +
                 ",file=" + gpuObject;
   }
@@ -4574,6 +4586,7 @@ static void makeBinaryLLVMForCUDA(const std::string& artifactFilename,
 }
 
 static void makeBinaryLLVMForHIP(const std::string& artifactFilename,
+                                 const std::string& artifactExtension,
                                  const std::string& gpuObjFilename,
                                  const std::string& outFilename,
                                  const std::string& fatbinFilename)
@@ -4581,13 +4594,14 @@ static void makeBinaryLLVMForHIP(const std::string& artifactFilename,
   std::string targets;
   std::string inputs;
   for (auto& gpuArch : gpuArches) {
+    auto fullFilename = artifactFilename + "_" + gpuArch + artifactExtension;
     std::string gpuObject = gpuObjFilename + "_" + gpuArch + ".o";
     std::string gpuOut = outFilename + "_" + gpuArch + ".out";
 
     std::string asmCmd = findSiblingClangToolPath("llvm-mc") + " " +
                          "--filetype=obj " +
                          "--triple=amdgcn-amd-amdhsa --mcpu=" + gpuArch + " " +
-                         artifactFilename + " " +
+                         fullFilename + " " +
                          "-o " + gpuObject;
     std::string lldCmd = std::string(gGpuSdkPath) +
                         "/llvm/bin/lld -flavor gnu" +
@@ -4650,6 +4664,7 @@ void makeBinaryLLVM(void) {
   std::string opt1Filename;
   std::string opt2Filename;
   std::string artifactFilename;
+  std::string artifactExtension;
   std::string gpuObjectFilename;
   std::string outFilename;
   std::string fatbinFilename;
@@ -4668,7 +4683,8 @@ void makeBinaryLLVM(void) {
 
     outFilename = genIntermediateFilename("chpl__gpu");
     gpuObjectFilename = genIntermediateFilename("chpl__gpu");
-    // no .o suffix on that last two because we might generate multiple
+    artifactFilename = genIntermediateFilename("chpl__gpu");
+    // no .o suffix on that last three because we might generate multiple
 
     // This switch may seem unnecessary, but in the past we wanted to use a
     // different "type" of intermediate file for different GPUs and we may want
@@ -4677,7 +4693,7 @@ void makeBinaryLLVM(void) {
     switch (getGpuCodegenType()) {
       case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
       case GpuCodegenType::GPU_CG_AMD_HIP:
-        artifactFilename = genIntermediateFilename("chpl__gpu.s");
+        artifactExtension = genIntermediateFilename(".s");
         break;
       case GpuCodegenType::GPU_CG_CPU:
         break;
@@ -4895,33 +4911,46 @@ void makeBinaryLLVM(void) {
     } else {
 
       auto artifactFileType = getCodeGenFileType();
+      std::string home(CHPL_HOME);
+      std::string rtmain = home + "/runtime/etc/rtmain.c";
 
-      linkGpuDeviceLibraries();
+      for (auto gpuArch : gpuArches) {
+        auto fullFilename = artifactFilename + "_" + gpuArch + artifactExtension;
 
-      llvm::raw_fd_ostream outputArtifactFile(artifactFilename, error, flags);
+        // Perform a new clang setup from scratch with the new GPU architecture
+        deleteClang(clangInfo);
+        clangInfo->offloadArch = gpuArch;
+        setupClang(info, rtmain);
 
-      {
+        linkGpuDeviceLibraries();
 
-        llvm::legacy::PassManager emitPM;
+        llvm::raw_fd_ostream outputArtifactFile(fullFilename, error, flags);
 
-        emitPM.add(createTargetTransformInfoWrapperPass(
-                   info->targetMachine->getTargetIRAnalysis()));
+        {
 
-        info->targetMachine->addPassesToEmitFile(emitPM, outputArtifactFile,
-                                                 nullptr,
-                                                 artifactFileType,
-                                                 disableVerify);
+          llvm::legacy::PassManager emitPM;
 
-        emitPM.run(*info->module);
+          emitPM.add(createTargetTransformInfoWrapperPass(
+                     info->targetMachine->getTargetIRAnalysis()));
+
+          info->targetMachine->addPassesToEmitFile(emitPM, outputArtifactFile,
+                                                   nullptr,
+                                                   artifactFileType,
+                                                   disableVerify);
+
+          emitPM.run(*info->module);
+        }
+        outputArtifactFile.close();
       }
 
-      outputArtifactFile.close();
       switch (getGpuCodegenType()) {
         case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
-          makeBinaryLLVMForCUDA(artifactFilename, gpuObjectFilename, fatbinFilename);
+          makeBinaryLLVMForCUDA(artifactFilename, artifactExtension,
+                                gpuObjectFilename, fatbinFilename);
           break;
         case GpuCodegenType::GPU_CG_AMD_HIP:
-          makeBinaryLLVMForHIP(artifactFilename, gpuObjectFilename, outFilename, fatbinFilename);
+          makeBinaryLLVMForHIP(artifactFilename, artifactExtension,
+                               gpuObjectFilename, outFilename, fatbinFilename);
           break;
         case GpuCodegenType::GPU_CG_CPU:
           break;
