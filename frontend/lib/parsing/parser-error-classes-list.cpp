@@ -418,6 +418,29 @@ void ErrorIllegalUseImport::write(ErrorWriterBase& wr) const {
   wr.note(clause, "only identifiers and 'dot' expressions are supported");
 }
 
+void ErrorInvalidUnaryImplements::write(ErrorWriterBase& wr) const {
+  auto decl = std::get<const uast::AggregateDecl*>(info);
+  auto implements = std::get<const uast::Implements*>(info);
+
+  const char* inWhat = "here";
+  const char* what = nullptr;
+  if (decl->isRecord()) {
+    inWhat = "in record bodies";
+    what = "record";
+  } else if (decl->isClass()) {
+    inWhat = "in class bodies";
+    what = "class";
+  }
+
+  wr.heading(kind_, type_, implements,
+             "this form of 'implements' statement is not allowed ", inWhat, ".");
+  wr.note(implements->interfaceExpr(), "in particular, the interface is specified with actuals:");
+  wr.code(implements, { implements->interfaceExpr() });
+  wr.message("This is not currently allowed.");
+  wr.note(decl, "the enclosing ", what, " is decalred here:");
+  wr.codeForDef(decl);
+}
+
 void ErrorMultipleManagementStrategies::write(ErrorWriterBase& wr) const {
   auto node = std::get<const uast::AstNode*>(info);
   auto outerMgt = std::get<1>(info);
