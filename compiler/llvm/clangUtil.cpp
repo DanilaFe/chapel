@@ -2815,12 +2815,90 @@ void computeClangArgs(std::vector<std::string>& clangCCArgs) {
   clangCCArgs.insert(clangCCArgs.end(), gotCCArgs.begin(), gotCCArgs.end());
 }
 
+static void setupClangAndModule(bool parseOnly) {
+  static bool is_installed_fatal_error_handler = false;
+  std::string home(CHPL_HOME);
+  std::string rtmain = home + "/runtime/etc/rtmain.c";
+
+  if (gGenInfo->module) {
+    delete gGenInfo->module;
+    gGenInfo->module = nullptr;
+  }
+
+  setupClang(gGenInfo, rtmain);
+
+  if( fLlvmCodegen || fAllowExternC )
+  {
+    GenInfo *info = gGenInfo;
+
+    // Install an LLVM Fatal Error Handler.
+    if (!is_installed_fatal_error_handler) {
+      is_installed_fatal_error_handler = true;
+      install_fatal_error_handler(handleErrorLLVM);
+    }
+
+    // auto &preproc =          gGenInfo->clangInfo->Clang->getPreprocessor();
+    // auto headerSearchOpts = gGenInfo->clangInfo->Clang->getHeaderSearchOptsPtr();
+    // (void) preproc;
+    // (void) headerSearchOpts;
+
+
+    // Run the Start Generation action
+    // Now initialize a code generator...
+    // this will enable us to ask for addresses of static (inline) functions
+    // and cause them to be emitted eventually.
+    // CCodeGenAction is defined above. It traverses the C AST
+    // and does the code generation.
+    gGenInfo->clangInfo->cCodeGenAction = new CCodeGenAction();
+    if (!gGenInfo->clangInfo->Clang->ExecuteAction(*gGenInfo->clangInfo->cCodeGenAction)) {
+      if (parseOnly) {
+        USR_FATAL("error running clang on extern block");
+      } else {
+        USR_FATAL("error running clang during code generation");
+      }
+    }
+
+    if( ! parseOnly ) {
+      // LLVM module should have been created by CCodeGenConsumer
+      INT_ASSERT(gGenInfo->module);
+
+      // Create a new IRBuilder
+      if (gGenInfo->irBuilder) {
+        delete gGenInfo->irBuilder;
+      }
+      gGenInfo->irBuilder = new llvm::IRBuilder<>(gGenInfo->module->getContext());
+
+      // This seems to be needed, even though it is strange.
+      // (otherwise we segfault in info->irBuilder->CreateGlobalString)
+
+      // Some IRBuilder methods, codegenning a string,
+      // need a basic block in order to get to the module
+      // so we create a dummy function to code generate into
+      llvm::Type * voidTy =  llvm::Type::getVoidTy(info->module->getContext());
+      std::vector<llvm::Type*> args;
+      llvm::FunctionType * FT = llvm::FunctionType::get(voidTy, args, false);
+      Function * F =
+        Function::Create(FT, Function::InternalLinkage,
+                         "chplDummyFunction", info->module);
+      llvm::BasicBlock *block =
+        llvm::BasicBlock::Create(info->module->getContext(), "entry", F);
+      info->irBuilder->SetInsertPoint(block);
+    }
+    // read macros. May call IRBuilder methods to codegen a string,
+    // so needs to happen after we set the insert point.
+    readMacrosClang();
+
+    if( ! parseOnly ) {
+      info->irBuilder->CreateRetVoid();
+    }
+  }
+}
+
 // if just_parse_filename != NULL, it is a file
 // containing an extern block to parse only
 // (and in that setting there is no need to work with the runtime).
 void runClang(const char* just_parse_filename) {
   bool parseOnly = (just_parse_filename != NULL);
-  static bool is_installed_fatal_error_handler = false;
 
   // find the path to clang and clang++
   std::string clangCC, clangCXX;
@@ -2951,66 +3029,7 @@ void runClang(const char* just_parse_filename) {
 
   gGenInfo->clangInfo = clangInfo;
 
-  std::string home(CHPL_HOME);
-  std::string rtmain = home + "/runtime/etc/rtmain.c";
-
-  setupClang(gGenInfo, rtmain);
-
-  if( fLlvmCodegen || fAllowExternC )
-  {
-    GenInfo *info = gGenInfo;
-
-    // Install an LLVM Fatal Error Handler.
-    if (!is_installed_fatal_error_handler) {
-      is_installed_fatal_error_handler = true;
-      install_fatal_error_handler(handleErrorLLVM);
-    }
-
-    // Run the Start Generation action
-    // Now initialize a code generator...
-    // this will enable us to ask for addresses of static (inline) functions
-    // and cause them to be emitted eventually.
-    // CCodeGenAction is defined above. It traverses the C AST
-    // and does the code generation.
-    clangInfo->cCodeGenAction = new CCodeGenAction();
-    if (!clangInfo->Clang->ExecuteAction(*clangInfo->cCodeGenAction)) {
-      if (parseOnly) {
-        USR_FATAL("error running clang on extern block");
-      } else {
-        USR_FATAL("error running clang during code generation");
-      }
-    }
-    if( ! parseOnly ) {
-      // LLVM module should have been created by CCodeGenConsumer
-      INT_ASSERT(gGenInfo->module);
-
-      // Create a new IRBuilder
-      gGenInfo->irBuilder = new llvm::IRBuilder<>(gGenInfo->module->getContext());
-
-      // This seems to be needed, even though it is strange.
-      // (otherwise we segfault in info->irBuilder->CreateGlobalString)
-
-      // Some IRBuilder methods, codegenning a string,
-      // need a basic block in order to get to the module
-      // so we create a dummy function to code generate into
-      llvm::Type * voidTy =  llvm::Type::getVoidTy(info->module->getContext());
-      std::vector<llvm::Type*> args;
-      llvm::FunctionType * FT = llvm::FunctionType::get(voidTy, args, false);
-      Function * F =
-        Function::Create(FT, Function::InternalLinkage,
-                         "chplDummyFunction", info->module);
-      llvm::BasicBlock *block =
-        llvm::BasicBlock::Create(info->module->getContext(), "entry", F);
-      info->irBuilder->SetInsertPoint(block);
-    }
-    // read macros. May call IRBuilder methods to codegen a string,
-    // so needs to happen after we set the insert point.
-    readMacrosClang();
-
-    if( ! parseOnly ) {
-      info->irBuilder->CreateRetVoid();
-    }
-  }
+  setupClangAndModule(parseOnly);
 }
 
 static
@@ -4911,16 +4930,15 @@ void makeBinaryLLVM(void) {
     } else {
 
       auto artifactFileType = getCodeGenFileType();
-      std::string home(CHPL_HOME);
-      std::string rtmain = home + "/runtime/etc/rtmain.c";
 
       for (auto gpuArch : gpuArches) {
         auto fullFilename = artifactFilename + "_" + gpuArch + artifactExtension;
 
         // Perform a new clang setup from scratch with the new GPU architecture
-        deleteClang(clangInfo);
+        cleanupClang(clangInfo);
         clangInfo->offloadArch = gpuArch;
-        setupClang(info, rtmain);
+        gGenInfo->lvt = std::make_unique<LayeredValueTable>();
+        setupClangAndModule(/* parseOnly */ false);
 
         linkGpuDeviceLibraries();
 
