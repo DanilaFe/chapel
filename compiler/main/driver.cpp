@@ -1795,6 +1795,8 @@ static void setChapelEnvs() {
       case GpuCodegenType::GPU_CG_AMD_HIP:
         gGpuSdkPath = envMap["CHPL_ROCM_PATH"];
         break;
+      case GpuCodegenType::GPU_CG_INTEL_SYCL:
+        INT_FATAL("I'm working on it");
       case GpuCodegenType::GPU_CG_CPU:
         gGpuSdkPath = "";
         break;

@@ -2230,6 +2230,7 @@ void setupLLVMCodegenFilenames(void) {
     switch (getGpuCodegenType()) {
       case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
       case GpuCodegenType::GPU_CG_AMD_HIP:
+      case GpuCodegenType::GPU_CG_INTEL_SYCL:
         filenames->artifactFilename = genIntermediateFilename("chpl__gpu.s");
         break;
       case GpuCodegenType::GPU_CG_CPU:
@@ -2662,16 +2663,18 @@ static bool isTargetCpuValid(const char* targetCpu) {
 static std::string generateClangGpuLangArgs() {
   std::string args = "";
   if (isFullGpuCodegen()) {
-    args += "-x ";
     switch (getGpuCodegenType()) {
       case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
-        args += "cuda";
+        args += "-x cuda";
         break;
       case GpuCodegenType::GPU_CG_AMD_HIP:
-        args += "hip";
+        args += "-x hip";
+        break;
+      case GpuCodegenType::GPU_CG_INTEL_SYCL:
+        args += "-fsycl";
         break;
       case GpuCodegenType::GPU_CG_CPU:
-        args += "c++";
+        args += "-x c++";
         args += " -lstdc++";
         break;
     }
@@ -4359,9 +4362,10 @@ static void linkGpuDeviceLibraries() {
     }
   }
 
-  if (getGpuCodegenType() == GpuCodegenType::GPU_CG_NVIDIA_CUDA) {
+  auto gpuType = getGpuCodegenType();
+  if (gpuType == GpuCodegenType::GPU_CG_NVIDIA_CUDA) {
     linkBitCodeFile(CHPL_CUDA_LIBDEVICE_PATH);
-  } else {
+  } else if (gpuType == GpuCodegenType::GPU_CG_AMD_HIP){
     // See <https://github.com/RadeonOpenCompute/ROCm-Device-Libs> for details
     // on what these various libraries are.
     auto libPath = gGpuSdkPath + std::string("/amdgcn/bitcode");
@@ -4388,7 +4392,8 @@ static void linkGpuDeviceLibraries() {
     if(file.good()) {
       linkBitCodeFile(oclcAbiVersionLibPath.c_str());
     }
-
+  } else if (gpuType == GpuCodegenType::GPU_CG_INTEL_SYCL) {
+    INT_FATAL("I'm working on it");
   }
 
   // internalize all functions that are not in `externals`
@@ -4577,6 +4582,7 @@ static llvm::CodeGenFileType getCodeGenFileType() {
   switch (getGpuCodegenType()) {
     case GpuCodegenType::GPU_CG_AMD_HIP:
     case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
+    case GpuCodegenType::GPU_CG_INTEL_SYCL:
     default:
       return llvm::CodeGenFileType::CGFT_AssemblyFile;
   }
@@ -5137,6 +5143,8 @@ static void llvmEmitObjectFile(void) {
               filenames->outFilenamePrefix,
               filenames->fatbinFilename);
           break;
+        case GpuCodegenType::GPU_CG_INTEL_SYCL:
+          INT_FATAL("I'm working on it");
         case GpuCodegenType::GPU_CG_CPU:
           break;
       }
