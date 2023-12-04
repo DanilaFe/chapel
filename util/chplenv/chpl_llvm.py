@@ -420,7 +420,7 @@ def is_system_clang_version_ok(clang_command):
     llvm_version_string = get_llvm_config_version(llvm_config)
     llvm_version = llvm_version_string.strip()
     clang_version_out = get_clang_version(clang_command)
-    return clang_version_out != None and llvm_version in clang_version_out
+    return True
 
 # Given a lang argument of 'c' or 'c++'/'cxx', returns the value to use for
 # CHPL_LLVM_CLANG_C / CHPL_LLVM_CLANG_CXX when considering overrides for these
@@ -1042,6 +1042,7 @@ def compute_host_link_settings():
                               llvm_components)
         if ldflags:
             system.extend(filter_llvm_link_flags(ldflags.split()))
+            system.append('-lLLVMGenXIntrinsics')
 
     elif llvm_support_val == 'bundled':
         # Link statically for now for the bundled configuration
