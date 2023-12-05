@@ -2364,7 +2364,7 @@ void FnSymbol::codegenPrototype() {
             func->setVisibility(llvm::Function::HiddenVisibility);
             break;
           case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
-            break; // no visibility change for SYCL
+            break; // no visibility change for Intel
           case GpuCodegenType::GPU_CG_CPU:
             break;
         }
