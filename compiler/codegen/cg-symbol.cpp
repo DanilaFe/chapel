@@ -2347,7 +2347,7 @@ void FnSymbol::codegenPrototype() {
           case GpuCodegenType::GPU_CG_AMD_HIP:
             func->setCallingConv(llvm::CallingConv::AMDGPU_KERNEL);
             break;
-          case GpuCodegenType::GPU_CG_INTEL_SYCL:
+          case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
             func->setCallingConv(llvm::CallingConv::SPIR_KERNEL);
             break;
           case GpuCodegenType::GPU_CG_CPU:
@@ -2363,7 +2363,7 @@ void FnSymbol::codegenPrototype() {
           case GpuCodegenType::GPU_CG_AMD_HIP:
             func->setVisibility(llvm::Function::HiddenVisibility);
             break;
-          case GpuCodegenType::GPU_CG_INTEL_SYCL:
+          case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
             break; // no visibility change for SYCL
           case GpuCodegenType::GPU_CG_CPU:
             break;

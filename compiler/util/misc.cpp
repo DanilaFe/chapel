@@ -107,7 +107,7 @@ GpuCodegenType getGpuCodegenType() {
     } else if (0 == strcmp(CHPL_GPU, "amd")) {
       return GpuCodegenType::GPU_CG_AMD_HIP;
     } else if (0 == strcmp(CHPL_GPU, "intel")) {
-      return GpuCodegenType::GPU_CG_INTEL_SYCL;
+      return GpuCodegenType::GPU_CG_INTEL_ONEAPI;
     } else if (0 == strcmp(CHPL_GPU, "cpu")) {
       return GpuCodegenType::GPU_CG_CPU;
     } else {

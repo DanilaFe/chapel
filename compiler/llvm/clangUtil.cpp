@@ -2230,7 +2230,7 @@ void setupLLVMCodegenFilenames(void) {
     switch (getGpuCodegenType()) {
       case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
       case GpuCodegenType::GPU_CG_AMD_HIP:
-      case GpuCodegenType::GPU_CG_INTEL_SYCL:
+      case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
         filenames->artifactFilename = genIntermediateFilename("chpl__gpu.s");
         break;
       case GpuCodegenType::GPU_CG_CPU:
@@ -2670,7 +2670,7 @@ static std::string generateClangGpuLangArgs() {
       case GpuCodegenType::GPU_CG_AMD_HIP:
         args += "-x hip";
         break;
-      case GpuCodegenType::GPU_CG_INTEL_SYCL:
+      case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
         args += "-fsycl";
         break;
       case GpuCodegenType::GPU_CG_CPU:
@@ -4392,7 +4392,7 @@ static void linkGpuDeviceLibraries() {
     if(file.good()) {
       linkBitCodeFile(oclcAbiVersionLibPath.c_str());
     }
-  } else if (gpuType == GpuCodegenType::GPU_CG_INTEL_SYCL) {
+  } else if (gpuType == GpuCodegenType::GPU_CG_INTEL_ONEAPI) {
     INT_FATAL("I'm working on it");
   }
 
@@ -4582,7 +4582,7 @@ static llvm::CodeGenFileType getCodeGenFileType() {
   switch (getGpuCodegenType()) {
     case GpuCodegenType::GPU_CG_AMD_HIP:
     case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
-    case GpuCodegenType::GPU_CG_INTEL_SYCL:
+    case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
     default:
       return llvm::CodeGenFileType::CGFT_AssemblyFile;
   }
@@ -5143,7 +5143,7 @@ static void llvmEmitObjectFile(void) {
               filenames->outFilenamePrefix,
               filenames->fatbinFilename);
           break;
-        case GpuCodegenType::GPU_CG_INTEL_SYCL:
+        case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
           INT_FATAL("I'm working on it");
         case GpuCodegenType::GPU_CG_CPU:
           break;
