@@ -42,6 +42,12 @@ GPU_TYPES = {
                     llvm_target="AMDGPU",
                     runtime_impl="rocm",
                     version_validator=_validate_rocm_version),
+    "intel": gpu_type(sdk_path_env="",
+                      compiler="",
+                      default_arch="",
+                      llvm_target="",
+                      runtime_impl="oneapi",
+                      version_validator=lambda: None),
     "cpu": gpu_type(sdk_path_env="",
                     compiler="",
                     default_arch="",
@@ -122,12 +128,11 @@ def get_arch():
 def get_sdk_path(for_gpu):
     gpu_type = get()
 
-    # No SDK path if GPU is not being used.
-    if gpu_type == 'cpu':
-        return 'none'
-
-    # Check vendor-specific environment variable for SDK path
+    # Check vendor-specific environment variable for SDK path. No environment
+    # variable means we don't need an SDK path, so ignore it for now.
     gpu = GPU_TYPES[for_gpu]
+    if gpu.sdk_path_env == "": return 'none'
+
     chpl_sdk_path = os.environ.get(gpu.sdk_path_env)
     if chpl_sdk_path:
         return chpl_sdk_path
@@ -187,6 +192,12 @@ def get_cuda_libdevice_path():
     return "none"
 
 def validateLlvmBuiltForTgt(expectedTgt):
+    # Expected target not specified, so just skip this check (e.g., Intel
+    # DPC++ doesn't list SPIR64 as an official target, so we have to skip
+    # the chec).
+    if expectedTgt == "":
+        return True
+
     # If we're using the bundled LLVM, llvm-config may not have been built
     # before we call chplenv. It seems safe to assume the bundled LLVM has been
     # built with whatever requirements we have for Chapel so we just return
@@ -324,7 +335,9 @@ def validate(chplLocaleModel):
 
     llvm_ver = chpl_llvm.get_llvm_version()
     if llvm_ver in ('16',):
-        error("The 'gpu' locale model cannot be used with LLVM version {}".format(llvm_ver))
+        # Intel's DPC++ is LLVM16, so don't fire this check.
+        if get() != 'intel':
+            error("The 'gpu' locale model cannot be used with LLVM version {}".format(llvm_ver))
 
     if not validateLlvmBuiltForTgt(gpu.llvm_target):
         _reportMissingGpuReq("LLVM not built for %s, consider setting CHPL_LLVM to 'bundled'." %
@@ -333,7 +346,7 @@ def validate(chplLocaleModel):
     for depr_env in ("CHPL_GPU_CODEGEN", "CHPL_GPU_RUNTIME"):
         if os.environ.get(depr_env):
             warning(depr_env + " is deprecated and now ignored. Please use " +
-                    "'CHPL_GPU=[nvidia|amd|cpu]' to choose a GPU target " +
+                    "'CHPL_GPU=[{}]' to choose a GPU target ".format("|".join(GPU_TYPES.keys())) +
                     "explicitly.")
 
     return True
