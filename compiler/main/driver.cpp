@@ -1796,7 +1796,8 @@ static void setChapelEnvs() {
         gGpuSdkPath = envMap["CHPL_ROCM_PATH"];
         break;
       case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
-        INT_FATAL("I'm working on it");
+        // TODO: wire this up when we need the SDK path
+        gGpuSdkPath = "";
       case GpuCodegenType::GPU_CG_CPU:
         gGpuSdkPath = "";
         break;
