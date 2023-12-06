@@ -42,6 +42,8 @@
 // This file might need a `chpl_nodeID` analogue. We need the GPU kernels to be
 // aware of which locale they're executing on.
 
+/*
+
 ONLY_GPU static inline chpl_localeID_t chpl_gen_getLocaleID(void)
 {
   chpl_localeID_t localeID;
@@ -53,6 +55,8 @@ ONLY_GPU static inline chpl_localeID_t chpl_gen_getLocaleID(void)
 ONLY_GPU static inline c_nodeid_t get_chpl_nodeID(void) {
   return 0;
 }
+
+*/
 
 ONLY_GPU static inline void chpl_gpu_force_sync() {
   /* TODO */
@@ -90,13 +94,11 @@ ONLY_GPU static inline uint32_t chpl_gpu_getGridDimZ()   {
   ONLY_GPU static inline T runtime_name(T *x, T val) {       \
     return /* TODO */ 0;                                     \
   }                                                          \
-  ONLY_CPU static inline T runtime_name(T *x, T val) {return 0;}
 
 #define GPU_3OP_ATOMIC(T, runtime_name, rocm_name)                   \
   ONLY_GPU static inline T runtime_name(T *x, T val1, T val2) {      \
     return /* TODO */ 0;                                             \
   }                                                                  \
-  ONLY_CPU static inline T runtime_name(T *x, T val1, T val2) {return 0;}
 
 // Some atomic operations are only supported in CUDA while others are only
 // supported in ROCM. We mark the operations that are unsupported for this

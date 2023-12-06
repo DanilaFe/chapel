@@ -26,6 +26,16 @@
 #include "chpltypes.h"
 #include "chpl-comm.h"
 
+MAYBE_GPU static inline void chpl_gpu_write(const char *str) { printf("%s", str); }
+
+MAYBE_GPU static inline void chpl_gpu_printTimeDelta(
+  const char *msg, unsigned int start, unsigned int end)
+{
+  printf("%s%u\n", msg, end - start);
+}
+
+#ifndef GPU_RUNTIME_INTEL
+
 ONLY_GPU static inline c_sublocid_t chpl_task_getRequestedSubloc(void)
 {
   // TODO
@@ -68,8 +78,6 @@ ONLY_GPU static inline void chpl_gen_comm_put(void* addr, c_nodeid_t node,
   // TODO
 }
 
-MAYBE_GPU static inline void chpl_gpu_write(const char *str) { printf("%s", str); }
-
 ONLY_GPU static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) { /* no op */ }
 ONLY_CPU static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) {
   chpl_error("assertOnGpu() failed", lineno, filenameIdx);
@@ -80,12 +88,6 @@ ONLY_GPU static inline unsigned int chpl_gpu_clock(void) {
 }
 ONLY_CPU static inline unsigned int chpl_gpu_clock(void) {
   return 0;
-}
-
-MAYBE_GPU static inline void chpl_gpu_printTimeDelta(
-  const char *msg, unsigned int start, unsigned int end)
-{
-  printf("%s%u\n", msg, end - start);
 }
 
 ONLY_CPU static inline void chpl_gpu_force_sync() {
@@ -111,9 +113,7 @@ void chpl_gen_comm_put_to_subloc(void* addr,
 
 }
 
-
-
-
+#endif // !GPU_RUNTIME_INTEL
 
 #endif // HAS_GPU_LOCALE
 
