@@ -26,7 +26,7 @@
 #include "chpltypes.h"
 #include "chpl-comm.h"
 
-__device__ static inline c_sublocid_t chpl_task_getRequestedSubloc(void)
+ONLY_GPU static inline c_sublocid_t chpl_task_getRequestedSubloc(void)
 {
   // TODO
   // We probably need an idea similar to `chpl_nodeID`. But, in our current
@@ -36,32 +36,32 @@ __device__ static inline c_sublocid_t chpl_task_getRequestedSubloc(void)
   return 0;
 }
 
-__device__ static inline void* c_pointer_return(void* x) { return x; }
-__device__ static inline void* c_pointer_return_const(const void* x) {
+ONLY_GPU static inline void* c_pointer_return(void* x) { return x; }
+ONLY_GPU static inline void* c_pointer_return_const(const void* x) {
   return (void*)x;
 }
 
-__device__ static inline chpl_localeID_t chpl_rt_buildLocaleID(c_nodeid_t node,  c_sublocid_t subloc) {
+ONLY_GPU static inline chpl_localeID_t chpl_rt_buildLocaleID(c_nodeid_t node,  c_sublocid_t subloc) {
   chpl_localeID_t loc = { node, subloc };
   return loc;
 }
 
-__device__ static inline c_nodeid_t chpl_rt_nodeFromLocaleID(chpl_localeID_t loc) {
+ONLY_GPU static inline c_nodeid_t chpl_rt_nodeFromLocaleID(chpl_localeID_t loc) {
   return loc.node;
 }
 
-__device__ static inline c_nodeid_t chpl_rt_sublocFromLocaleID(chpl_localeID_t loc) {
+ONLY_GPU static inline c_nodeid_t chpl_rt_sublocFromLocaleID(chpl_localeID_t loc) {
   return loc.subloc;
 }
 
-__device__ static inline void chpl_gen_comm_get(void *addr, c_nodeid_t node,
+ONLY_GPU static inline void chpl_gen_comm_get(void *addr, c_nodeid_t node,
   void* raddr, size_t size, int32_t commID, int ln, int32_t fn)
 {
   printf("Warning: chpl_gen_comm_get called inside a GPU kernel. This shouldn't have happened.\n");
   // TODO
 }
 
-__device__ static inline void chpl_gen_comm_put(void* addr, c_nodeid_t node,
+ONLY_GPU static inline void chpl_gen_comm_put(void* addr, c_nodeid_t node,
   void* raddr, size_t size, int32_t commID, int ln, int32_t fn)
 {
   printf("Warning: chpl_gen_comm_put called inside a GPU kernel. This shouldn't have happened.\n");
@@ -70,15 +70,15 @@ __device__ static inline void chpl_gen_comm_put(void* addr, c_nodeid_t node,
 
 MAYBE_GPU static inline void chpl_gpu_write(const char *str) { printf("%s", str); }
 
-__device__ static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) { /* no op */ }
-__host__ static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) {
+ONLY_GPU static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) { /* no op */ }
+ONLY_CPU static inline void chpl_assert_on_gpu(int32_t lineno, int32_t filenameIdx) {
   chpl_error("assertOnGpu() failed", lineno, filenameIdx);
 }
 
-__device__ static inline unsigned int chpl_gpu_clock(void) {
+ONLY_GPU static inline unsigned int chpl_gpu_clock(void) {
   return (unsigned int)clock();
 }
-__host__ static inline unsigned int chpl_gpu_clock(void) {
+ONLY_CPU static inline unsigned int chpl_gpu_clock(void) {
   return 0;
 }
 
@@ -88,11 +88,11 @@ MAYBE_GPU static inline void chpl_gpu_printTimeDelta(
   printf("%s%u\n", msg, end - start);
 }
 
-__host__ static inline void chpl_gpu_force_sync() {
+ONLY_CPU static inline void chpl_gpu_force_sync() {
   chpl_internal_error("chpl_gpu_force_sync called from host");
 }
 
-__device__ static inline
+ONLY_GPU static inline
 void chpl_gen_comm_get_from_subloc(void *addr, c_nodeid_t src_node,
                                    c_sublocid_t src_subloc, void* raddr,
                                    size_t size, int32_t commID, int ln,
@@ -101,7 +101,7 @@ void chpl_gen_comm_get_from_subloc(void *addr, c_nodeid_t src_node,
   // TODO
 }
 
-__device__ static inline
+ONLY_GPU static inline
 void chpl_gen_comm_put_to_subloc(void* addr,
                                  c_nodeid_t dst_node, c_sublocid_t dst_subloc,
                                  void* raddr, size_t size, int32_t commID,

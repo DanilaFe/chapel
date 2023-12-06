@@ -37,14 +37,14 @@
 // functions to be executing correctly on the GPU to have GPU-driven
 // communication, with the assumption that GPU-driven communication will look
 // like regular communication to the compiler. But until we have proper
-// implementation for the GPU-driven communication, we just need __device__
+// implementation for the GPU-driven communication, we just need ONLY_GPU
 // versions of these functions so that we can compile Chapel applications.
 
 // TODO
 // This file might need a `chpl_nodeID` analogue. We need the GPU kernels to be
 // aware of which locale they're executing on.
 
-__device__ static inline chpl_localeID_t chpl_gen_getLocaleID(void)
+ONLY_GPU static inline chpl_localeID_t chpl_gen_getLocaleID(void)
 {
   chpl_localeID_t localeID;
   localeID = {0,chpl_task_getRequestedSubloc()};
@@ -52,33 +52,33 @@ __device__ static inline chpl_localeID_t chpl_gen_getLocaleID(void)
 }
 
 
-__device__ static inline c_nodeid_t get_chpl_nodeID(void) {
+ONLY_GPU static inline c_nodeid_t get_chpl_nodeID(void) {
   return 0;
 }
 
-__device__ static inline void chpl_gpu_force_sync() {
+ONLY_GPU static inline void chpl_gpu_force_sync() {
   __builtin_amdgcn_s_barrier();
 }
 
-__device__ static inline uint32_t chpl_gpu_getThreadIdxX() { return __builtin_amdgcn_workitem_id_x(); }
-__device__ static inline uint32_t chpl_gpu_getThreadIdxY() { return __builtin_amdgcn_workitem_id_y(); }
-__device__ static inline uint32_t chpl_gpu_getThreadIdxZ() { return __builtin_amdgcn_workitem_id_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxX() { return __builtin_amdgcn_workitem_id_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxY() { return __builtin_amdgcn_workitem_id_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxZ() { return __builtin_amdgcn_workitem_id_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getBlockIdxX()  { return __builtin_amdgcn_workgroup_id_x(); }
-__device__ static inline uint32_t chpl_gpu_getBlockIdxY()  { return __builtin_amdgcn_workgroup_id_y(); }
-__device__ static inline uint32_t chpl_gpu_getBlockIdxZ()  { return __builtin_amdgcn_workgroup_id_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxX()  { return __builtin_amdgcn_workgroup_id_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxY()  { return __builtin_amdgcn_workgroup_id_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxZ()  { return __builtin_amdgcn_workgroup_id_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getBlockDimX()  { return __builtin_amdgcn_workgroup_size_x(); }
-__device__ static inline uint32_t chpl_gpu_getBlockDimY()  { return __builtin_amdgcn_workgroup_size_y(); }
-__device__ static inline uint32_t chpl_gpu_getBlockDimZ()  { return __builtin_amdgcn_workgroup_size_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimX()  { return __builtin_amdgcn_workgroup_size_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimY()  { return __builtin_amdgcn_workgroup_size_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimZ()  { return __builtin_amdgcn_workgroup_size_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getGridDimX()   {
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimX()   {
   return __builtin_amdgcn_grid_size_x() / chpl_gpu_getBlockDimX();
 }
-__device__ static inline uint32_t chpl_gpu_getGridDimY()   {
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimY()   {
   return __builtin_amdgcn_grid_size_y() / chpl_gpu_getBlockDimY();
 }
-__device__ static inline uint32_t chpl_gpu_getGridDimZ()   {
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimZ()   {
   return __builtin_amdgcn_grid_size_z() / chpl_gpu_getBlockDimZ();
 }
 
@@ -87,16 +87,16 @@ __device__ static inline uint32_t chpl_gpu_getGridDimZ()   {
 // =================
 
 #define GPU_2OP_ATOMIC(T, runtime_name, rocm_name)           \
-  __device__ static inline T runtime_name(T *x, T val) {     \
+  ONLY_GPU static inline T runtime_name(T *x, T val) {       \
     return rocm_name(x, val);                                \
   }                                                          \
-  __host__ static inline T runtime_name(T *x, T val) {return 0;}
+  ONLY_CPU static inline T runtime_name(T *x, T val) {return 0;}
 
 #define GPU_3OP_ATOMIC(T, runtime_name, rocm_name)                   \
-  __device__ static inline T runtime_name(T *x, T val1, T val2) {    \
+  ONLY_GPU static inline T runtime_name(T *x, T val1, T val2) {      \
     return rocm_name(x, val1, val2);                                 \
   }                                                                  \
-  __host__ static inline T runtime_name(T *x, T val1, T val2) {return 0;}
+  ONLY_CPU static inline T runtime_name(T *x, T val1, T val2) {return 0;}
 
 // Some atomic operations are only supported in CUDA while others are only
 // supported in ROCM. We mark the operations that are unsupported for this

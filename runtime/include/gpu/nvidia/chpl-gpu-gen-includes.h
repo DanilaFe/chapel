@@ -29,7 +29,7 @@
 #include "chpl-comm.h"
 
 // this variable is added by the compiler. See codegenGpuGlobals.
-extern __device__ c_nodeid_t chpl_nodeID;
+extern ONLY_GPU c_nodeid_t chpl_nodeID;
 
 // General TODO
 // This file is included in the application executable only. It mirrors
@@ -38,59 +38,59 @@ extern __device__ c_nodeid_t chpl_nodeID;
 // functions to be executing correctly on the GPU to have GPU-driven
 // communication, with the assumption that GPU-driven communication will look
 // like regular communication to the compiler. But until we have proper
-// implementation for the GPU-driven communication, we just need __device__
+// implementation for the GPU-driven communication, we just need ONLY_GPU
 // versions of these functions so that we can compile Chapel applications.
 
-__device__ static inline c_nodeid_t get_chpl_nodeID(void) {
+ONLY_GPU static inline c_nodeid_t get_chpl_nodeID(void) {
   return chpl_nodeID;
 }
 
 // TODO Rest of the functions are relatively boilerplate once we have everything
-__device__ static inline chpl_localeID_t chpl_gen_getLocaleID(void)
+ONLY_GPU static inline chpl_localeID_t chpl_gen_getLocaleID(void)
 {
   chpl_localeID_t localeID;
   localeID = {get_chpl_nodeID() ,chpl_task_getRequestedSubloc()};
   return localeID;
 }
 
-__device__ static inline void chpl_gpu_force_sync() {
+ONLY_GPU static inline void chpl_gpu_force_sync() {
   // Using __syncThreads() directly causes issues when compiling programs with
   // --fast.  It's likely due to an issue with clang discussed here:
   // https://github.com/llvm/llvm-project/issues/58626
   asm volatile("bar.sync 0;" : : : "memory");
 }
 
-__device__ static inline uint32_t chpl_gpu_getThreadIdxX() { return __nvvm_read_ptx_sreg_tid_x(); }
-__device__ static inline uint32_t chpl_gpu_getThreadIdxY() { return __nvvm_read_ptx_sreg_tid_y(); }
-__device__ static inline uint32_t chpl_gpu_getThreadIdxZ() { return __nvvm_read_ptx_sreg_tid_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxX() { return __nvvm_read_ptx_sreg_tid_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxY() { return __nvvm_read_ptx_sreg_tid_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getThreadIdxZ() { return __nvvm_read_ptx_sreg_tid_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getBlockIdxX()  { return __nvvm_read_ptx_sreg_ctaid_x(); }
-__device__ static inline uint32_t chpl_gpu_getBlockIdxY()  { return __nvvm_read_ptx_sreg_ctaid_y(); }
-__device__ static inline uint32_t chpl_gpu_getBlockIdxZ()  { return __nvvm_read_ptx_sreg_ctaid_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxX()  { return __nvvm_read_ptx_sreg_ctaid_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxY()  { return __nvvm_read_ptx_sreg_ctaid_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockIdxZ()  { return __nvvm_read_ptx_sreg_ctaid_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getBlockDimX()  { return __nvvm_read_ptx_sreg_ntid_x(); }
-__device__ static inline uint32_t chpl_gpu_getBlockDimY()  { return __nvvm_read_ptx_sreg_ntid_y(); }
-__device__ static inline uint32_t chpl_gpu_getBlockDimZ()  { return __nvvm_read_ptx_sreg_ntid_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimX()  { return __nvvm_read_ptx_sreg_ntid_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimY()  { return __nvvm_read_ptx_sreg_ntid_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getBlockDimZ()  { return __nvvm_read_ptx_sreg_ntid_z(); }
 
-__device__ static inline uint32_t chpl_gpu_getGridDimX()   { return __nvvm_read_ptx_sreg_nctaid_x(); }
-__device__ static inline uint32_t chpl_gpu_getGridDimY()   { return __nvvm_read_ptx_sreg_nctaid_y(); }
-__device__ static inline uint32_t chpl_gpu_getGridDimZ()   { return __nvvm_read_ptx_sreg_nctaid_z(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimX()   { return __nvvm_read_ptx_sreg_nctaid_x(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimY()   { return __nvvm_read_ptx_sreg_nctaid_y(); }
+ONLY_GPU static inline uint32_t chpl_gpu_getGridDimZ()   { return __nvvm_read_ptx_sreg_nctaid_z(); }
 
 // =================
 // Atomic Operations
 // =================
 
 #define GPU_2OP_ATOMIC(T, runtime_name, cuda_name)            \
-  __device__ static inline T runtime_name(T *x, T val) {      \
+  ONLY_GPU static inline T runtime_name(T *x, T val) {        \
     return cuda_name(x, val);                                 \
   }                                                           \
-  __host__ static inline T runtime_name(T *x, T val) {return 0;}
+  ONLY_CPU static inline T runtime_name(T *x, T val) {return 0;}
 
 #define GPU_3OP_ATOMIC(T, runtime_name, cuda_name)                   \
-  __device__ static inline T runtime_name(T *x, T val1, T val2) {    \
+  ONLY_GPU static inline T runtime_name(T *x, T val1, T val2) {      \
     return cuda_name(x, val1, val2);                                 \
   }                                                                  \
-  __host__ static inline T runtime_name(T *x, T val1, T val2) {return 0;}
+  ONLY_CPU static inline T runtime_name(T *x, T val1, T val2) {return 0;}
 
 GPU_2OP_ATOMIC(int,                chpl_gpu_atomic_add_int,       atomicAdd);
 GPU_2OP_ATOMIC(unsigned int,       chpl_gpu_atomic_add_uint,      atomicAdd);
