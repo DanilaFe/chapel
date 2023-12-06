@@ -55,6 +55,7 @@
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/Bitcode/BitcodeWriterPass.h"
 #include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Verifier.h"
@@ -2230,8 +2231,10 @@ void setupLLVMCodegenFilenames(void) {
     switch (getGpuCodegenType()) {
       case GpuCodegenType::GPU_CG_NVIDIA_CUDA:
       case GpuCodegenType::GPU_CG_AMD_HIP:
-      case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
         filenames->artifactFilename = genIntermediateFilename("chpl__gpu.s");
+        break;
+      case GpuCodegenType::GPU_CG_INTEL_ONEAPI:
+        filenames->artifactFilename = genIntermediateFilename("chpl__gpu.bc");
         break;
       case GpuCodegenType::GPU_CG_CPU:
         break;
@@ -2679,7 +2682,7 @@ static std::string generateClangGpuLangArgs() {
         break;
     }
 
-    if (gpuArches.size() >= 1) {
+    if (gpuArches.size() >= 1 && getGpuCodegenType() != GpuCodegenType::GPU_CG_INTEL_ONEAPI) {
       args += " " + std::string("--offload-arch=") + *gpuArches.begin();
     }
   }
@@ -4393,7 +4396,7 @@ static void linkGpuDeviceLibraries() {
       linkBitCodeFile(oclcAbiVersionLibPath.c_str());
     }
   } else if (gpuType == GpuCodegenType::GPU_CG_INTEL_ONEAPI) {
-    INT_FATAL("I'm working on it");
+    // TODO
   }
 
   // internalize all functions that are not in `externals`
@@ -5120,10 +5123,19 @@ static void llvmEmitObjectFile(void) {
         emitPM.add(createTargetTransformInfoWrapperPass(
                    info->targetMachine->getTargetIRAnalysis()));
 
-        info->targetMachine->addPassesToEmitFile(emitPM, outputArtifactFile,
-                                                 nullptr,
-                                                 artifactFileType,
-                                                 disableVerify);
+        if (getGpuCodegenType() == GpuCodegenType::GPU_CG_INTEL_ONEAPI) {
+          // Intel compilation requires bitcode instead of assembly, so
+          // instead of creating emit-to-file passes, create the bitcode
+          // writer pass.
+          emitPM.add(llvm::createBitcodeWriterPass(outputArtifactFile));
+        } else {
+          // Other compilation target want assembly / object files, which
+          // this takes care of.
+          info->targetMachine->addPassesToEmitFile(emitPM, outputArtifactFile,
+                                                   nullptr,
+                                                   artifactFileType,
+                                                   disableVerify);
+        }
 
         emitPM.run(*info->module);
 
