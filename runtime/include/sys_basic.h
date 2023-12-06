@@ -117,6 +117,10 @@
 #define MAYBE_GPU __host__ __device__
 #define ONLY_GPU __device__
 #define ONLY_CPU __host__
+#elif defined(HAS_GPU_LOCALE) && defined(GPU_RUNTIME_INTEL)
+#define MAYBE_GPU
+#define ONLY_GPU __attribute__((sycl_device))
+#define ONLY_CPU
 #else
 #define MAYBE_GPU
 #define ONLY_GPU
