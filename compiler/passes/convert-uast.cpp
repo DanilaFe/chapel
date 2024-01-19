@@ -1912,13 +1912,14 @@ struct Converter {
       INT_ASSERT(block);
 
       auto loopAttributes = buildLoopAttributes(node);
-      if (loopAttributes.assertOnGpuAttr)
-        CHPL_REPORT(context, InvalidGpuAssertion, node, loopAttributes.assertOnGpuAttr);
 
       if (node->isFor()) {
+        if (loopAttributes.assertOnGpuAttr)
+          CHPL_REPORT(context, InvalidGpuAssertion, node, loopAttributes.assertOnGpuAttr);
         ret = ForLoop::buildForLoop(index, iteratorExpr, block, zippered,
                                     isForExpr, std::move(loopAttributes.llvmMetadata));
       } else {
+        loopAttributes.insertGpuEligibilityAssertion(body);
         ret = ForLoop::buildForeachLoop(index, iteratorExpr, intents, body,
                                         zippered,
                                         isForExpr, std::move(loopAttributes.llvmMetadata));
