@@ -1,0 +1,4 @@
+{
+    "name": "Chapel CI Environment",
+    "image": "chapel/chapel"
+}
