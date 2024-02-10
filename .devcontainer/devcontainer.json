@@ -1,5 +1,5 @@
 {
-  "image": "danilafe/chapel",
+  "image": "danilafe/chapel:0.1",
   "features": {
   }
 }
