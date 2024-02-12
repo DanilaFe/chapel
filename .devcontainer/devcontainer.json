@@ -1,12 +1,12 @@
 {
   "image": "danilafe/chapel-vscode:0.1",
   "features": {
-  }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
         "/opt/chapel/chapel.vsix"
-      ]
+      ],
       "settings": {
         "chapel.CHPL_HOME": "/opt/chapel",
         "chapel.chplcheck.path": "chplcheck",
