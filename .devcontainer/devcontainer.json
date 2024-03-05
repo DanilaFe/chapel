@@ -1,5 +1,5 @@
 {
-  "image": "danilafe/chapel-vscode:0.1",
+  "image": "danilafe/chapel-vscode:0.2",
   "features": {
   },
   "customizations": {
