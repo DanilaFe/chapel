@@ -16,10 +16,15 @@
 # limitations under the License.
 
 add_executable(fieldsUsed EXCLUDE_FROM_ALL "fieldsUsed.cpp")
+add_executable(typePtrCompare EXCLUDE_FROM_ALL "typePtrCompare.cpp")
 
 # store it in the build directory
 set_target_properties(fieldsUsed  PROPERTIES RUNTIME_OUTPUT_DIRECTORY . )
+set_target_properties(typePtrCompare  PROPERTIES RUNTIME_OUTPUT_DIRECTORY . )
 
 target_link_libraries(fieldsUsed clang-cpp ${CHPL_LLVM_LINK_ARGS})
+target_link_libraries(typePtrCompare clang-cpp ${CHPL_LLVM_LINK_ARGS})
+
 # TODO: Why is this needed when it was not needed before?
 target_compile_options(fieldsUsed PRIVATE SHELL:$<$<COMPILE_LANGUAGE:CXX>:${CHPL_LLVM_COMP_ARGS}>)
+target_compile_options(typePtrCompare PRIVATE SHELL:$<$<COMPILE_LANGUAGE:CXX>:${CHPL_LLVM_COMP_ARGS}>)

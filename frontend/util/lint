@@ -47,7 +47,7 @@ def check_file(filename):
     Check a file for errors, returning one LintError per method that fails
     Currently logs the parsed fields and methods for each class to aid in debugging
     """
-    args = ['fieldsUsed', str(filename)]
+    args = ['typePtrCompare', str(filename)]
     if compile_commands:
         args.append('-p')
         args.append(str(compile_commands))
