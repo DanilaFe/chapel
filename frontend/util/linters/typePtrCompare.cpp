@@ -54,32 +54,6 @@ using namespace clang::ast_matchers;
 using namespace clang::tooling;
 using namespace llvm;
 
-// Have to get information out after matching b/c the lifetime of the asts is
-// over by the time we go to report errors (since we have to visit everything
-// before figuring out what we haven't seen
-struct PrintInfo {
-  std::string name, location;
-};
-
-using FieldDeclSet = std::unordered_set<const FieldDecl*>;
-using MethodFieldUseMap =
-    std::unordered_map<const CXXMethodDecl*, FieldDeclSet>;
-using PtrPrintInfoMap = std::unordered_map<const void*, PrintInfo>;
-
-// Create a set of type `Out` with each element in `range` where the predicate
-// `f` is true
-template <typename Out, typename Range, typename F>
-static auto filterIntoSet(F f, const Range& range) {
-  Out ret;
-  for (const auto& x : range) {
-    if (f(x)) {
-      ret.insert(x);
-    }
-  }
-  return ret;
-}
-
-//
 // This class records every use of a field of `this` (both implicit
 // and explicit) in a method
 //
@@ -96,68 +70,36 @@ static auto filterIntoSet(F f, const Range& range) {
 //
 class BinOpCallback : public MatchFinder::MatchCallback {
  public:
-  BinOpCallback(PtrPrintInfoMap& infoMap, MethodFieldUseMap& useMap)
-      : infoMap_(infoMap), methodFieldsUsed_(useMap) {}
+  BinOpCallback() {}
 
   void run(const MatchFinder::MatchResult& result) override {
-    const auto* member = result.Nodes.getNodeAs<MemberExpr>("member");
-    const auto* method = result.Nodes.getNodeAs<CXXMethodDecl>("method");
-    const auto& sm = method->getASTContext().getSourceManager();
+    const auto* lhs = result.Nodes.getNodeAs<Expr>("lhs");
+    const auto* rhs = result.Nodes.getNodeAs<Expr>("rhs");
+    auto& sm = result.Context->getSourceManager();
 
-    // First time we see this method, populate the use map with all `this`
-    // fields
-    auto it = methodFieldsUsed_.find(method);
-    if (it == methodFieldsUsed_.end()) {
-      recordMethod(sm, method);
-      const CXXRecordDecl* record = method->getParent();
-      it = methodFieldsUsed_.emplace_hint(
-          it, method,
-          filterIntoSet<FieldDeclSet>([](auto x) { return true; }, record->fields()));
-      // Capture info on all fields in our set
-      for (const auto& field : it->second)
-        recordField(sm, field);
-    }
-    auto& fieldsNotUsedYet = it->second;
+    auto ignoreNullptr = [](const Expr* node) {
+      if (auto implicitCastExpr = dyn_cast<ImplicitCastExpr>(node)) {
+        if (implicitCastExpr->getCastKind() == CastKind::CK_NullToPointer) {
+          return true;
+        }
+      }
+      return false;
+    };
+    if(ignoreNullptr(lhs) || ignoreNullptr(rhs)) return;
 
-    // a MemberDecl is either a Field, static member, method or enum constant
-    // we only care about a field
-    if (const FieldDecl* field = dyn_cast<FieldDecl>(member->getMemberDecl())) {
-      fieldsNotUsedYet.erase(field);
-      recordField(sm, field);
-    }
+    llvm::outs() << lhs->getBeginLoc().printToString(sm) << "\n";
+    errorCount++;
   }
 
- private:
-  void recordField(const clang::SourceManager& sm, const FieldDecl* field) {
-    auto it = infoMap_.find(field);
-    if (it == infoMap_.end()) {
-      infoMap_.emplace_hint(it, field,
-                            PrintInfo{field->getNameAsString(),
-                                      field->getBeginLoc().printToString(sm)});
-    }
-  }
-  void recordMethod(const clang::SourceManager& sm,
-                    const CXXMethodDecl* method) {
-    auto it = infoMap_.find(method);
-    if (it == infoMap_.end()) {
-      infoMap_.emplace_hint(it, method,
-                            PrintInfo{method->getQualifiedNameAsString(),
-                                      method->getBeginLoc().printToString(sm)});
-    }
-  }
-  // We store the name and location for each ptr we have in methodFieldsUsed_
-  PtrPrintInfoMap& infoMap_;
-  // For each method we've seen, this tracks the set of `this` fields not yet
-  // used So at the end of processing, anything left in this map is unused
-  MethodFieldUseMap& methodFieldsUsed_;
+  int errorCount = 0;
 };
 
 static auto makePtrBinOpMatcher() {
   // Want to find a == operator on two things whose types extend from chpl::types::Type
   return binaryOperator(
     hasOperatorName("=="),
-    hasLHS(hasType(pointsTo(cxxRecordDecl(isDerivedFrom("chpl::types::Type"))))),
-    hasRHS(hasType(pointsTo(cxxRecordDecl(isDerivedFrom("chpl::types::Type"))))));
+    hasLHS(expr(hasType(pointsTo(cxxRecordDecl(isDerivedFrom("chpl::types::Type"))))).bind("lhs")),
+    hasRHS(expr(hasType(pointsTo(cxxRecordDecl(isDerivedFrom("chpl::types::Type"))))).bind("rhs")));
 }
 
 // Run BinOpCallback over functions which match `pattern`.
@@ -165,9 +107,7 @@ static auto makePtrBinOpMatcher() {
 // filter function
 static size_t runMemberExprsMatcher(clang::tooling::ToolExecutor* ex) {
   ast_matchers::MatchFinder finder;
-  PtrPrintInfoMap infoMap;
-  MethodFieldUseMap useMap;
-  auto callback = BinOpCallback(infoMap, useMap);
+  auto callback = BinOpCallback();
 
   // This isn't the best query, since if we pass multiple TUs on the
   // command line, I think we'll revisit functions, but having the
@@ -182,24 +122,7 @@ static size_t runMemberExprsMatcher(clang::tooling::ToolExecutor* ex) {
     return 1;
   }
 
-  // At this point, everything in useMap is a freed pointer, but we just look up
-  // the info in the map we've returned. This is my workaround to not finishing
-  // understanding the lifetime of AST in clang in one sitting
-
-  size_t errCount = 0;
-
-  for (const auto& it : useMap) {
-    const PrintInfo& methodInfo = infoMap.at(it.first);
-
-    for (const void* fieldNotUsed : it.second) {
-      const PrintInfo& fieldInfo = infoMap.at(fieldNotUsed);
-      errCount += 1;
-      llvm::outs() << methodInfo.location << "\n  " << methodInfo.name
-                   << " does not use " << fieldInfo.name << "\n";
-    }
-  }
-
-  return errCount;
+  return callback.errorCount;
 }
 
 // Boilerplate: Set up the command line options
