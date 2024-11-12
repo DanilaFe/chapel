@@ -9468,10 +9468,10 @@ static void resolveMoveForRhsSymExpr(CallExpr* call, SymExpr* rhs) {
       // see also resolveIdxVar() / defaultIntentYieldsConst()
       // todo: differentiate based on ref-ness, not _ref type
       // todo: not all const if it is zippered and one of iterators is var
-      if (isReferenceType(rhsType)                == false &&
-          isTupleContainingAnyReferences(rhsType) == false &&
-          rhsType->symbol->hasFlag(FLAG_ARRAY)    == false &&
-          rhsType->symbol->hasFlag(FLAG_COPY_MUTATES) == false) {
+      if (isReferenceType(rhsType)                  == false &&
+          isTupleContainingAnyReferences(rhsType)   == false &&
+          rhsType->symbol->hasFlag(FLAG_ARRAY)      == false &&
+          recordContainingCopyMutatesField(rhsType) == false) {
         // ... then mark LHS constant.
         lhsSym->addFlag(FLAG_CONST);
       }
