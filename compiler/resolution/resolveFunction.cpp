@@ -407,7 +407,7 @@ bool recordContainingCopyMutatesField(Type* t) {
       return true;
     }
 
-    foundInitEquals = true;
+    foundInitEquals |= !method->hasFlag(FLAG_COMPILER_GENERATED);
   }
 
   // All user `init=` methods were 'const', so assume no copy mutation.
