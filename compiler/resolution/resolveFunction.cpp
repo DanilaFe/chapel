@@ -394,6 +394,27 @@ bool recordContainingCopyMutatesField(Type* t) {
   if (at == NULL) return false;
   if (!isRecord(at)) return false;
   if (at->symbol->hasFlag(FLAG_COPY_MUTATES)) return true;
+  if (at->symbol->hasFlag(FLAG_NO_COPY_MUTATES)) return false;
+
+  bool foundInitEquals = false;
+  for (auto method : at->methods) {
+    if (!method || method->name != astrInitEquals) continue;
+    if (method->numFormals() < 3 ||
+        method->getFormal(3)->typeInfo()->getValType() != t) continue;
+
+    if (!method->getFormal(3)->isConstant()) {
+      at->symbol->addFlag(FLAG_COPY_MUTATES);
+      return true;
+    }
+
+    foundInitEquals = true;
+  }
+
+  // All user `init=` methods were 'const', so assume no copy mutation.
+  if (foundInitEquals) {
+    at->symbol->addFlag(FLAG_NO_COPY_MUTATES);
+    return false;
+  }
 
   bool ret = false;
   for_fields(field, at) {
@@ -407,9 +428,7 @@ bool recordContainingCopyMutatesField(Type* t) {
   // 1. this is easier to compute in the future and
   // 2. other code working with this type will know
   //    (e.g. lvalue checking)
-  if (ret && !at->symbol->hasFlag(FLAG_COPY_MUTATES))
-    at->symbol->addFlag(FLAG_COPY_MUTATES);
-
+  at->symbol->addFlag(ret ? FLAG_COPY_MUTATES : FLAG_NO_COPY_MUTATES);
   return ret;
 }
 

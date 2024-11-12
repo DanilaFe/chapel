@@ -170,6 +170,9 @@ PRAGMA(C_PTRCONST_CLASS, ypr, "c_ptrConst class", "marks c_ptrConst class")
 PRAGMA(COPY_MUTATES, ypr,
        "copy mutates",
        "the initCopy function / copy initializer takes its argument by ref")
+PRAGMA(NO_COPY_MUTATES, npr,
+       "no copy mutates",
+       "the negation of 'copy mutates' used to avoid re-running the computation")
 PRAGMA(DATA_CLASS, ypr, "data class", ncm)
 
 // Flag for temporaries created for default values
