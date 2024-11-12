@@ -417,18 +417,30 @@ bool recordContainingCopyMutatesField(Type* t) {
   }
 
   bool ret = false;
+  bool fullyKnown = true;
   for_fields(field, at) {
     if (AggregateType* atf = toAggregateType(field->type)) {
       if (isRecord(atf))
         ret |= recordContainingCopyMutatesField(atf);
+    } else if (field->type == dtUnknown) {
+      // the type is not fully resolved; if we don't find a 'copy mutates'
+      // field, that doesn't mean there isn't one.
+      fullyKnown = false;
     }
   }
 
-  // Set the flag so that:
+  // Set the flags so that:
   // 1. this is easier to compute in the future and
   // 2. other code working with this type will know
   //    (e.g. lvalue checking)
-  at->symbol->addFlag(ret ? FLAG_COPY_MUTATES : FLAG_NO_COPY_MUTATES);
+  if (ret) {
+    // At least one field mutated on copy, so the whole record is.
+    at->symbol->addFlag(FLAG_COPY_MUTATES);
+  } else if (fullyKnown) {
+    // No fields mutated on copy, so the whole record is not.
+    at->symbol->addFlag(FLAG_NO_COPY_MUTATES);
+  }
+
   return ret;
 }
 
