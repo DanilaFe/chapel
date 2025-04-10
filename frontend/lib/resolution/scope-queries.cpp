@@ -643,6 +643,18 @@ const Scope* scopeForId(Context* context, ID id) {
 
 using VisibilityTraceElt = ResultVisibilityTrace::VisibilityTraceElt;
 
+struct CheckedScopesWithStaticBuffer {
+  std::array<std::byte, sizeof(CheckedScope) * 32> staticBuffer;
+  std::pmr::monotonic_buffer_resource resource;
+  CheckedScopes checkedScopes;
+
+  CheckedScopesWithStaticBuffer();
+};
+
+CheckedScopesWithStaticBuffer::CheckedScopesWithStaticBuffer() :
+  staticBuffer(), resource(staticBuffer.data(), staticBuffer.size()),
+  checkedScopes(std::pmr::polymorphic_allocator<CheckedScope>(&resource)) {}
+
 // a struct to encapsulate arguments to doLookupIn...
 // so that the calls and function signatures do not get too unwieldy.
 struct LookupHelper {
@@ -2000,7 +2012,8 @@ lookupNameInScope(Context* context,
                   const ReceiverScopeHelper* receiverScopeHelper,
                   UniqueString name,
                   LookupConfig config) {
-  CheckedScopes visited;
+  CheckedScopesWithStaticBuffer visitedBuffered;
+  CheckedScopes& visited = visitedBuffered.checkedScopes;
   MatchingIdsWithName vec;
 
   helpLookupInScope(context, scope,
@@ -2020,7 +2033,9 @@ lookupNameInScopeWithWarnings(Context* context,
                               UniqueString name,
                               LookupConfig config,
                               ID idForWarnings) {
-  CheckedScopes visited;
+
+  CheckedScopesWithStaticBuffer visitedBuffered;
+  CheckedScopes& visited = visitedBuffered.checkedScopes;
   MatchingIdsWithName vec;
 
   helpLookupInScopeWithShadowingWarning(context, scope,
@@ -3886,7 +3901,8 @@ static void collectAllPublicContents(Context* context, const Scope* scope,
                         LOOKUP_METHODS |
                         LOOKUP_SKIP_SHADOW_SCOPES;
   for (auto name : namesDefined) {
-    CheckedScopes lookupCheckedScopes;
+    CheckedScopesWithStaticBuffer lookupCheckedScopesBuffered;
+    CheckedScopes& lookupCheckedScopes = lookupCheckedScopesBuffered.checkedScopes;
     MatchingIdsWithName lookupResult;
 
     helpLookupInScope(context, scope,

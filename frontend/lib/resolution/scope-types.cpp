@@ -27,6 +27,7 @@
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Config/llvm-config.h"
+#include <memory_resource>
 
 namespace chpl {
 namespace resolution {

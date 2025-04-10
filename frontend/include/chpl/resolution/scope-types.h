@@ -27,6 +27,7 @@
 #include "chpl/util/iteration.h"
 
 #include <unordered_map>
+#include <memory_resource>
 #include <utility>
 
 #include "llvm/ADT/ArrayRef.h"
@@ -1382,7 +1383,7 @@ struct CheckedScope {
   }
 };
 
-using CheckedScopes = std::unordered_map<CheckedScope, IdAndFlags::FlagSet>;
+using CheckedScopes = std::pmr::unordered_map<CheckedScope, IdAndFlags::FlagSet>;
 
 /** This type collects all public symbols used in a module */
 class ModulePublicSymbols {
