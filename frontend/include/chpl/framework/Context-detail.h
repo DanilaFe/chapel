@@ -32,6 +32,7 @@
 #include <cstring>
 #include <tuple>
 #include <unordered_set>
+#include <memory_resource>
 #include <utility>
 #include <vector>
 
@@ -419,10 +420,12 @@ template<typename ResultType,
 class QueryMap final : public QueryMapBase {
  public:
   using TheResultType = QueryMapResult<ResultType, ArgTs...>;
-  using MapType = std::unordered_set<TheResultType,
-                                     QueryMapArgTupleHash<ResultType, ArgTs...>,
-                                     QueryMapArgTupleEqual<ResultType, ArgTs...>>;
+  using MapType = std::pmr::unordered_set<TheResultType,
+                                          QueryMapArgTupleHash<ResultType, ArgTs...>,
+                                          QueryMapArgTupleEqual<ResultType, ArgTs...>>;
   using QueryFunctionType = const ResultType& (*)(Context* context, ArgTs...);
+
+  std::pmr::unsynchronized_pool_resource bufferResource;
 
   // the main map (which is actually a set since the result needs to
   // store the key (i.e. the args) in order to be recomputable
@@ -435,7 +438,8 @@ class QueryMap final : public QueryMapBase {
 
   QueryMap(const char* queryName, bool isInputQuery, QueryFunctionType queryFunction)
      : QueryMapBase(queryName, isInputQuery),
-       map(), oldResults(),
+       bufferResource(),
+       map(std::pmr::polymorphic_allocator<TheResultType>(&bufferResource)), oldResults(),
        queryFunction(queryFunction) {
   }
   ~QueryMap() = default;
