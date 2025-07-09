@@ -237,10 +237,13 @@ auto queryArgsToStrings(const std::tuple<Ts...>& tuple) {
 struct QueryDependency {
   const QueryMapResultBase* query;
   bool errorCollectionRoot;
+  int isRealDependency:2;
 
   QueryDependency(const QueryMapResultBase* query,
                   bool errorCollectionRoot) :
-    query(query), errorCollectionRoot(errorCollectionRoot) {}
+    query(query), errorCollectionRoot(errorCollectionRoot) {
+    isRealDependency = 0;
+  }
 };
 
 using QueryDependencyVec = std::vector<QueryDependency>;

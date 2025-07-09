@@ -602,7 +602,7 @@ void Context::gatherRecursionTrace(const querydetail::QueryMapResultBase* root,
 
   CHPL_ASSERT(result->recursionErrors.count(root) > 0);
   for (auto& dep : result->dependencies) {
-    if (dep.query->recursionErrors.count(root) > 0) {
+    if (dep.isRealDependency == 0 && dep.query->recursionErrors.count(root) > 0) {
       if (auto te = dep.query->tryTrace()) {
         trace.emplace_back(*te);
       }
@@ -1064,6 +1064,10 @@ void Context::recomputeIfNeeded(const QueryMapResultBase* resultEntry) {
   bool useSaved = true;
   resultEntry->beingTestedForReuse = true;
   for (auto& dependency : resultEntry->dependencies) {
+    if (dependency.isRealDependency) {
+      continue;
+    }
+
     const QueryMapResultBase* dependencyQuery = dependency.query;
     if (dependencyQuery->externallySet || dependencyQuery->lastChanged > resultEntry->lastChanged) {
       useSaved = false;
@@ -1175,6 +1179,10 @@ bool Context::queryCanUseSavedResult(
     for (auto& dependency: resultEntry->dependencies) {
       const QueryMapResultBase* dependencyQuery = dependency.query;
 
+      if (dependency.isRealDependency) {
+        continue;
+      }
+
       if (dependencyQuery->externallySet) {
         useSaved = false;
         break;
@@ -1237,6 +1245,9 @@ void Context::emitHiddenErrorsFor(const querydetail::QueryMapResultBase* result)
   }
   result->emittedErrors = true;
   for (auto& dependency : result->dependencies) {
+    if (dependency.isRealDependency) {
+      continue;
+    }
     if (!dependency.query->emittedErrors && !dependency.errorCollectionRoot) {
       emitHiddenErrorsFor(dependency.query);
     }
@@ -1252,6 +1263,9 @@ storeErrorsFromHelp(const querydetail::QueryMapResultBase* result,
     storeError(error->clone());
   }
   for (auto& dependency : result->dependencies) {
+    if (dependency.isRealDependency) {
+      continue;
+    }
     if (!dependency.errorCollectionRoot &&
         dependency.query->errorsPresentInSelfOrDependencies) {
       storeErrorsFromHelp(dependency.query, visited);
