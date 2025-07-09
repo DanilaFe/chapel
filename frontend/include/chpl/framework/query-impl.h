@@ -581,7 +581,16 @@ Context::isQueryRunning(
     savedElement->lastChecked = -2;
   }
 
-  return savedElement->lastChecked == -1 || savedElement->beingTestedForReuse;
+  // since isQueryRunning relies on context state, we ought to keep track
+  // of the result to ensure recomputation behaves correctly.
+  bool isRunning = savedElement->lastChecked == -1 || savedElement->beingTestedForReuse;
+
+  if (!queryStack.empty()) {
+    int dependencyKind = 0b10 | isRunning;
+    queryStack.back()->dependencies.push_back(QueryDependency(savedElement, /* errorCollectionRoot */ false, dependencyKind));
+  }
+
+  return isRunning;
 }
 
 template<typename ResultType,

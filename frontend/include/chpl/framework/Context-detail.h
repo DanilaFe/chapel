@@ -240,10 +240,10 @@ struct QueryDependency {
   int isRealDependency:2;
 
   QueryDependency(const QueryMapResultBase* query,
-                  bool errorCollectionRoot) :
-    query(query), errorCollectionRoot(errorCollectionRoot) {
-    isRealDependency = 0;
-  }
+                  bool errorCollectionRoot,
+                  int isRealDependency = 0) :
+    query(query), errorCollectionRoot(errorCollectionRoot),
+    isRealDependency(isRealDependency) {}
 };
 
 using QueryDependencyVec = std::vector<QueryDependency>;
