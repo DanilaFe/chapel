@@ -562,24 +562,26 @@ bool
 Context::isQueryRunning(
      const ResultType& (*queryFunction)(Context* context, ArgTs...),
      const std::tuple<ArgTs...>& tupleOfArgs) {
-  // Look up the map entry for this query name
-  const void* queryFuncV = (const void*) queryFunction;
-  // Look up the map entry for this query
-  auto search = this->queryDB.find(queryFuncV);
-  if (search == this->queryDB.end()) {
-    return false;
-  }
+  // we want to always get-or-insert, so that `isQueryRunning` behaves
+  // deterministically.
+
+  auto base = getMap(queryFunction, tupleOfArgs,
+                     /* TODO: the following arguments are placeholders. */
+                     "", /* isInputQuery */ false);
 
   // found an entry for this query
-  QueryMapBase* base = search->second.get();
   auto queryMap = (QueryMap<ResultType, ArgTs...>*)base;
-  QueryMapResult<ResultType, ArgTs...> key(queryMap, tupleOfArgs);
-  auto search2 = queryMap->map.find(key);
-  if (search2 == queryMap->map.end()) {
-    return false;
+  auto pair = queryMap->map.emplace(queryMap, tupleOfArgs);
+  auto savedElement = &(*pair.first); // pointer to element in map (added/not)
+  bool newElementWasAdded = pair.second;
+
+  if (newElementWasAdded) {
+    // special value: query is not being computed, and hasn't been computed,
+    // but has been created as a placeholder.
+    savedElement->lastChecked = -2;
   }
 
-  return search2->lastChecked == -1 || search2->beingTestedForReuse;
+  return savedElement->lastChecked == -1 || savedElement->beingTestedForReuse;
 }
 
 template<typename ResultType,
