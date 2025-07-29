@@ -106,11 +106,5 @@ chpl::Context* buildStdContext(chpl::CompilerFlags flags) {
   parsing::setupModuleSearchPaths(_reusedContext.get(), false, false, {}, {});
   setCompilerFlags(_reusedContext.get(), flags);
 
-  // resolve the standard modules from the same "usual" predefined point.
-  // this way, the order in which the modules are traversed is always the same.
-  if (auto autoUseScope = resolution::scopeForAutoModule(_reusedContext.get())) {
-    std::ignore = resolution::resolveVisibilityStmts(_reusedContext.get(), autoUseScope, false);
-  }
-
   return _reusedContext.get();
 }

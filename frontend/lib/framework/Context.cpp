@@ -1032,6 +1032,15 @@ void Context::warning(const uast::AstNode* ast, const char* fmt, ...) {
 
 #undef CHPL_CONTEXT_LOG_ERROR_HELPER
 
+static bool checkIsQueryRunningDependency(Context* context,
+                                          const QueryDependency& dependency) {
+  bool isRunningNow =
+    dependency.query->lastChecked == -1 || dependency.query->beingTestedForReuse;
+  bool wasRunning = dependency.isRealDependency & 0b1;
+
+  return isRunningNow == wasRunning;
+}
+
 void Context::recomputeIfNeeded(const QueryMapResultBase* resultEntry) {
 
   //if (enableDebugTrace) {
@@ -1065,6 +1074,10 @@ void Context::recomputeIfNeeded(const QueryMapResultBase* resultEntry) {
   resultEntry->beingTestedForReuse = true;
   for (auto& dependency : resultEntry->dependencies) {
     if (dependency.isRealDependency) {
+      if (!checkIsQueryRunningDependency(this, dependency)) {
+        useSaved = false;
+        break;
+      }
       continue;
     }
 
@@ -1180,6 +1193,10 @@ bool Context::queryCanUseSavedResult(
       const QueryMapResultBase* dependencyQuery = dependency.query;
 
       if (dependency.isRealDependency) {
+        if (!checkIsQueryRunningDependency(this, dependency)) {
+          useSaved = false;
+          break;
+        }
         continue;
       }
 
