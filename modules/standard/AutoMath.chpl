@@ -316,6 +316,9 @@ module AutoMath {
   //
 
   @chpldoc.nodoc
+  inline proc max(x: bool, y: bool) do return if x > y then x else y;
+
+  @chpldoc.nodoc
   inline proc max(x: int(8), y: int(8)) do return if x > y then x else y;
   @chpldoc.nodoc
   inline proc max(x: int(16), y: int(16)) do return if x > y then x else y;
@@ -368,6 +371,7 @@ module AutoMath {
 
      :rtype: The type of `x`.
    */
+  pragma "last resort"
   inline proc max(x, y)
   where !isArray(x) && !isArray(y) &&
         !(isNumeric(_desync(x.type)) && isNumeric(_desync(y.type))) {
@@ -383,6 +387,9 @@ module AutoMath {
     where !(isComplex(x) || isComplex(y)) {
     return if x > y then x else y;
   }
+
+  @chpldoc.nodoc
+  inline proc min(x: bool, y: bool) do return if x < y then x else y;
 
   @chpldoc.nodoc
   inline proc min(x: int(8), y: int(8)) do return if x < y then x else y;
@@ -439,6 +446,7 @@ module AutoMath {
 
      :rtype: The type of `x`.
    */
+  pragma "last resort"
   inline proc min(x, y)
   where !isArray(x) && !isArray(y) &&
         !(isNumeric(_desync(x.type)) && isNumeric(_desync(y.type))) {
