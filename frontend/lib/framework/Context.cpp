@@ -1236,6 +1236,7 @@ bool Context::queryCanUseSavedResultAndPushIfNot(
     // Clear out the dependencies and errors since these will be recomputed
     // by evaluating the query.
     resultEntry->dependencies.clear();
+    resultEntry->errorsPresentInSelfOrDependencies = 0;
     resultEntry->errors.clear();
     resultEntry->oldResultForErrorContents = -1;
     resultEntry->recursionErrors.clear();
