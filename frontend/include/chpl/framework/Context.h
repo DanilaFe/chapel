@@ -191,13 +191,15 @@ class Context {
    private:
     std::vector<owned<ErrorBase>>* storeInto_;
     bool* noteErrorOccurredInto_;
+    bool silenceErrors_ = true;
     const querydetail::QueryMapResultBase* collectingQuery_;
 
     ErrorCollectionEntry(std::vector<owned<ErrorBase>>* storeInto,
                          bool* noteErrorOccurredInto,
+                         bool silenceErrors,
                          const querydetail::QueryMapResultBase* collectingQuery) :
       storeInto_(storeInto), noteErrorOccurredInto_(noteErrorOccurredInto),
-      collectingQuery_(collectingQuery) {}
+      silenceErrors_(silenceErrors), collectingQuery_(collectingQuery) {}
 
     void storeErrorsFromHelp(const querydetail::QueryMapResultBase* result,
                             std::unordered_set<const querydetail::QueryMapResultBase*>& visited);
@@ -209,7 +211,8 @@ class Context {
      */
     static ErrorCollectionEntry
     createForTrackingQuery(std::vector<owned<ErrorBase>>*,
-                           const querydetail::QueryMapResultBase*);
+                           const querydetail::QueryMapResultBase*,
+                           bool silenceErrors = true);
 
     /**
       Like the vector-based overload above, except set up for merely
@@ -217,7 +220,8 @@ class Context {
       the errors.
      */
     static ErrorCollectionEntry
-    createForTrackingQuery(bool*, const querydetail::QueryMapResultBase*);
+    createForTrackingQuery(bool*, const querydetail::QueryMapResultBase*,
+                           bool silenceErrors = true);
 
     /**
       When recomputing queries (to determine if a cached result should be used),
@@ -228,9 +232,12 @@ class Context {
       the saved query result is used when the parent query is re-run.
      */
     static ErrorCollectionEntry
-    createForRecomputing(const querydetail::QueryMapResultBase*);
+    createForRecomputing(const querydetail::QueryMapResultBase*,
+                         bool silenceErrors);
 
     const querydetail::QueryMapResultBase* collectingQuery() const { return collectingQuery_; }
+
+    bool silenceErrors() const { return silenceErrors_; }
 
     void storeError(owned<ErrorBase> toStore) const;
 
@@ -534,11 +541,11 @@ class Context {
   // hashtable?
 
   template <typename F, typename ResultBase>
-  auto runAndHandleErrors(F&& f) -> RunResult<decltype(f(this)), ResultBase> {
+  auto runAndHandleErrors(F&& f, bool silenceErrors) -> RunResult<decltype(f(this)), ResultBase> {
     RunResult<decltype(f(this)), ResultBase> result;
     auto collectionRoot = queryStack.empty() ? nullptr : queryStack.back();
     errorCollectionStack.push_back(
-        ErrorCollectionEntry::createForTrackingQuery(&result.value(), collectionRoot));
+        ErrorCollectionEntry::createForTrackingQuery(&result.value(), collectionRoot, silenceErrors));
     result.result() = f(this);
     errorCollectionStack.pop_back();
     return result;
@@ -636,13 +643,13 @@ class Context {
     not shown to the user.
    */
   template <typename F>
-  auto runAndCaptureErrors(F&& f) -> RunResult<decltype(f(this)), CapturingRunResultBase> {
-    return runAndHandleErrors<F, CapturingRunResultBase>(std::forward<F>(f));
+  auto runAndCaptureErrors(F&& f, bool silenceErrors = true) -> RunResult<decltype(f(this)), CapturingRunResultBase> {
+    return runAndHandleErrors<F, CapturingRunResultBase>(std::forward<F>(f), silenceErrors);
   }
 
   template <typename F>
-  auto runAndDetectErrors(F&& f) -> RunResult<decltype(f(this)), ObservingRunResultBase> {
-    return runAndHandleErrors<F, ObservingRunResultBase>(std::forward<F>(f));
+  auto runAndDetectErrors(F&& f, bool silenceErrors = true) -> RunResult<decltype(f(this)), ObservingRunResultBase> {
+    return runAndHandleErrors<F, ObservingRunResultBase>(std::forward<F>(f), silenceErrors);
   }
 
   optional<std::vector<TraceElement>> recoverFromSelfRecursion() const;

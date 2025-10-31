@@ -484,7 +484,8 @@ Context::updateResultForQueryMapR(QueryMap<ResultType, ArgTs...>* queryMap,
     queryMap->oldResults.push_back(std::move(result));
   }
 
-  r->emittedErrors = errorCollectionStack.empty();
+  r->emittedErrors =
+    errorCollectionStack.empty() || !errorCollectionStack.back().silenceErrors();
   r->lastChecked = currentRevision;
   if (changed || initialResult) {
     r->lastChanged  = currentRevision;

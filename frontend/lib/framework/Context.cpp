@@ -171,21 +171,24 @@ bool Context::ObservingRunResultBase::ranWithoutErrors() const {
 Context::ErrorCollectionEntry
 Context::ErrorCollectionEntry::createForTrackingQuery(
     std::vector<owned<ErrorBase>>* storeInto,
-    const QueryMapResultBase* trackingQuery) {
-  return Context::ErrorCollectionEntry(storeInto, nullptr, trackingQuery);
+    const QueryMapResultBase* trackingQuery,
+    bool silenceErrors) {
+  return Context::ErrorCollectionEntry(storeInto, nullptr, silenceErrors, trackingQuery);
 }
 
 Context::ErrorCollectionEntry
 Context::ErrorCollectionEntry::createForTrackingQuery(
     bool* noteErrorOccurredInto,
-    const QueryMapResultBase* trackingQuery) {
-  return Context::ErrorCollectionEntry(nullptr, noteErrorOccurredInto, trackingQuery);
+    const QueryMapResultBase* trackingQuery,
+    bool silenceErrors) {
+  return Context::ErrorCollectionEntry(nullptr, noteErrorOccurredInto, silenceErrors, trackingQuery);
 }
 
 Context::ErrorCollectionEntry
 Context::ErrorCollectionEntry::createForRecomputing(
-    const querydetail::QueryMapResultBase* trackingQuery) {
-  return Context::ErrorCollectionEntry(nullptr, nullptr, trackingQuery);
+    const querydetail::QueryMapResultBase* trackingQuery,
+    bool silenceErrors) {
+  return Context::ErrorCollectionEntry(nullptr, nullptr, silenceErrors, trackingQuery);
 }
 
 void Context::ErrorCollectionEntry::storeError(owned<ErrorBase> toStore) const {
@@ -922,16 +925,20 @@ void Context::report(owned<ErrorBase> error) {
   bool isError = error->kind() == ErrorBase::ERROR || error->kind() == ErrorBase::SYNTAX;
 
   if (queryStack.size() > 0 && errorCollectionStack.size() > 0) {
-    bool isSilencing =
+    bool isDirectlySilencing =
       errorCollectionStack.back().collectingQuery() == queryStack.back();
 
-    if (isSilencing) {
+    if (isDirectlySilencing) {
       // queries that are silencing themselves have no reason to store their
       // errors anywhere besides the error collection stack, since those
       // errors will never become visible in subsequent (re)executions with
       // the same arguments.
       errorCollectionStack.back().storeError(std::move(error));
     } else {
+      if (!errorCollectionStack.back().silenceErrors()) {
+        reportError(this, error.get());
+      }
+
       errorCollectionStack.back().storeError(error->clone());
       queryStack.back()->errors.push_back(std::move(error));
       queryStack.back()->errorsPresentInSelfOrDependencies |= 1 << (!isError);
@@ -941,6 +948,10 @@ void Context::report(owned<ErrorBase> error) {
     queryStack.back()->errorsPresentInSelfOrDependencies |= 1 << (!isError);
     reportError(this, queryStack.back()->errors.back().get());
   } else if (errorCollectionStack.size() > 0) {
+    if (!errorCollectionStack.back().silenceErrors()) {
+      reportError(this, error.get());
+    }
+
     errorCollectionStack.back().storeError(std::move(error));
   } else {
     reportError(this, error.get());
@@ -1073,7 +1084,7 @@ void Context::recomputeIfNeeded(const QueryMapResultBase* resultEntry) {
     } else {
       if (dependency.errorCollectionRoot) {
         errorCollectionStack.push_back(
-            ErrorCollectionEntry::createForRecomputing(resultEntry));
+            ErrorCollectionEntry::createForRecomputing(resultEntry, dependency.collectedErrorsSilenced));
       }
       recomputeIfNeeded(dependencyQuery);
       if (dependency.errorCollectionRoot) {
@@ -1120,11 +1131,12 @@ void Context::updateForReuse(const QueryMapResultBase* resultEntry) {
     // and also mark unique strings in the errors
   }
   resultEntry->lastChecked = this->currentRevisionNumber;
-  resultEntry->emittedErrors = errorCollectionStack.empty();
+  resultEntry->emittedErrors =
+    errorCollectionStack.empty() || !errorCollectionStack.back().silenceErrors();
 
   // Update error locations if needed and re-report the error
   // Only re-report errors if they are not being silenced.
-  if (errorCollectionStack.empty()) {
+  if (resultEntry->emittedErrors) {
     for (auto& err: resultEntry->errors) {
       reportError(this, err.get());
     }
@@ -1182,7 +1194,7 @@ bool Context::queryCanUseSavedResult(
 
       if (dependency.errorCollectionRoot) {
         errorCollectionStack.push_back(
-            ErrorCollectionEntry::createForRecomputing(resultEntry));
+            ErrorCollectionEntry::createForRecomputing(resultEntry, dependency.collectedErrorsSilenced));
       }
       recomputeIfNeeded(dependencyQuery);
       if (dependency.errorCollectionRoot) {
@@ -1297,8 +1309,10 @@ void Context::saveDependencyInParent(const QueryMapResultBase* resultEntry) {
     } else {
       bool errorCollectionRoot = !errorCollectionStack.empty() &&
                                  errorCollectionStack.back().collectingQuery() == parentQuery;
-      parentQuery->dependencies.emplace_back(resultEntry, errorCollectionRoot);
-      if (!errorCollectionRoot) {
+      bool collectedErrorsSilenced = errorCollectionRoot &&
+                                     errorCollectionStack.back().silenceErrors();
+      parentQuery->dependencies.emplace_back(resultEntry, errorCollectionRoot, collectedErrorsSilenced);
+      if (!errorCollectionRoot || !collectedErrorsSilenced) {
         parentQuery->errorsPresentInSelfOrDependencies |=
           resultEntry->errorsPresentInSelfOrDependencies;
       }
