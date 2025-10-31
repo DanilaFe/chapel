@@ -929,6 +929,10 @@ void Context::report(owned<ErrorBase> error) {
       errorCollectionStack.back().collectingQuery() == queryStack.back();
 
     if (isDirectlySilencing) {
+      if (!errorCollectionStack.back().silenceErrors()) {
+        reportError(this, error.get());
+      }
+
       // queries that are silencing themselves have no reason to store their
       // errors anywhere besides the error collection stack, since those
       // errors will never become visible in subsequent (re)executions with
