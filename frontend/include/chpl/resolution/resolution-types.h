@@ -1419,6 +1419,8 @@ enum CandidateFailureReason {
   FAIL_ERRORS_THROWN,
   /* The user tried to use a default value for a generic field in an initializer. */
   FAIL_NO_DEFAULT_VALUE_FOR_GENERIC_FIELD,
+  /* We tried to call a type constructor, but this type can't be constructed. */
+  FAIL_NO_TYPE_CONSTRUCTOR,
   /* The wrong number of varargs were given to the function. */
   FAIL_VARARG_MISMATCH,
   /* An interface tried to resolve an associated type function but it didn't return a type */
