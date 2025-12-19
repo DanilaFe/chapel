@@ -27,6 +27,8 @@
 #include "chpl/uast/Module.h"
 #include "chpl/uast/TypeDecl.h"
 
+bool foundAnyPoi = false;
+
 namespace chpl {
 namespace resolution {
 
@@ -152,6 +154,17 @@ struct CalledFnCollector {
 
     if (fn == nullptr) {
       fn = resolveFunction(&rcval, sig, poiScope);
+    }
+
+    if (fn) {
+      if (fn->poiInfo().poiFnIdsUsed().size() > 0) {
+        sig->dump();
+        for (auto& poiFnId : fn->poiInfo().poiFnIdsUsed()) {
+          printf("  ");
+          poiFnId.second.dump();
+          foundAnyPoi = true;
+        }
+      }
     }
 
     return fn;

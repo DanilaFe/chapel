@@ -237,6 +237,8 @@ static void checkCanLoadCommandLineFile(const char* path) {
   }
 }
 
+extern bool foundAnyPoi;
+
 static void loadAndConvertModules(UastConverter& c) {
 
   // check that some key internal modules are available
@@ -360,7 +362,7 @@ static void loadAndConvertModules(UastConverter& c) {
 
   // Stop compilation here for --dyno-resolve-only
   if (fDynoResolveOnly) {
-    clean_exit(0);
+    clean_exit(foundAnyPoi ? 42 : 0);
   }
 }
 
