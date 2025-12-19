@@ -282,6 +282,8 @@ module ChplFormat {
         return nil:readType;
       }
 
+      import Reflection.{canResolveTypeMethod};
+
       if isNumericType(readType) || isBoolType(readType) {
         var x : readType;
         reader._readOne(_iokind.dynamic, x, here);
@@ -309,6 +311,8 @@ module ChplFormat {
         reader.withDeserializer(defaultDeserializer).read(val);
         return;
       }
+
+      import Reflection.{canResolveMethod};
 
       if canResolveMethod(val, "deserialize", reader, this) {
         val.deserialize(reader=reader, deserializer=this);

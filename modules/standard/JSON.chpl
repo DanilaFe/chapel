@@ -643,6 +643,8 @@ module JSON {
         return nil:readType;
       }
 
+      import Reflection.{canResolveTypeMethod};
+
       // TODO:
       // - escaped strings
       if isNumericType(readType) || isBoolType(readType) {
